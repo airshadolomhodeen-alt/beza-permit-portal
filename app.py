@@ -111,7 +111,6 @@ with st.sidebar:
 
   show_admin = False
   if admin_toggle:
-    # Secure PIN protection for evaluators (You can change "BEZA2026" to any PIN you prefer)
     admin_pin = st.text_input("Enter Official Access PIN", type="password")
     if admin_pin == "BEZA2026":
       show_admin = True
@@ -127,12 +126,12 @@ with st.sidebar:
   )
 
 
-# --- PORTAL VIEW 2: SECURE BEZA OFFICIAL REVIEW DASHBOARD ---
+# --- PORTAL VIEW 2: SECURE BEZA OFFICIAL REVIEW & EDIT/DELETE DASHBOARD ---
 if show_admin:
   st.markdown("### 🛡️ BEZA Official Evaluation & Review Dashboard")
   st.write(
-      "Review incoming applicant submissions, track metadata, and export"
-      " compliance logs for technical auditing."
+      "Review incoming applicant submissions, edit records, delete invalid"
+      " entries, and export compliance logs."
   )
 
   csv_file = "submissions.csv"
@@ -143,6 +142,70 @@ if show_admin:
     )
     st.dataframe(df_submissions, use_container_width=True)
 
+    st.markdown("---")
+    st.markdown("### ⚙️ Manage / Edit / Delete Submissions")
+
+    if len(df_submissions) > 0:
+      # Select record index to manage
+      row_indices = list(range(len(df_submissions)))
+      selected_idx = st.selectbox(
+          "Select Row Index to Edit or Delete",
+          row_indices,
+          format_func=lambda x: f"Row {x} - {df_submissions.loc[x, 'Owner_Name']} ({df_submissions.loc[x, 'App_Ref_No']})",
+      )
+
+      col_edit, col_del = st.columns(2)
+
+      with col_edit:
+        st.markdown("#### Edit Selected Record")
+        current_row = df_submissions.loc[selected_idx]
+
+        with st.form("edit_form"):
+          edit_ref = st.text_input(
+              "Application Reference No.", value=str(current_row["App_Ref_No"])
+          )
+          edit_owner = st.text_input(
+              "Owner Name", value=str(current_row["Owner_Name"])
+          )
+          edit_tin = st.text_input("TIN", value=str(current_row["TIN"]))
+          edit_loc = st.text_input(
+              "Location", value=str(current_row["Location"])
+          )
+
+          save_changes = st.form_submit_button("💾 Save Changes")
+
+        if save_changes:
+          df_submissions.loc[selected_idx, "App_Ref_No"] = edit_ref
+          df_submissions.loc[selected_idx, "Owner_Name"] = edit_owner
+          df_submissions.loc[selected_idx, "TIN"] = edit_tin
+          df_submissions.loc[selected_idx, "Location"] = edit_loc
+          df_submissions.to_csv(csv_file, index=False)
+          st.success(
+              f"✅ Row {selected_idx} successfully updated! Please refresh the"
+              " page."
+          )
+          st.rerun()
+
+      with col_del:
+        st.markdown("#### Delete Selected Record")
+        st.warning(
+            "⚠️ Deleting a record is permanent and removes it from the audit"
+            " log."
+        )
+        if st.button(
+            "🗑️ Delete This Record", type="primary", key="delete_btn"
+        ):
+          df_submissions = df_submissions.drop(selected_idx).reset_index(
+              drop=True
+          )
+          df_submissions.to_csv(csv_file, index=False)
+          st.success(
+              f"🗑️ Row {selected_idx} successfully deleted! Please refresh the"
+              " page."
+          )
+          st.rerun()
+
+    st.markdown("---")
     # Export button for officials
     csv_bytes = df_submissions.to_csv(index=False).encode("utf-8")
     st.download_button(
@@ -153,10 +216,7 @@ if show_admin:
         type="primary",
     )
   else:
-    st.info(
-        "No application submissions recorded yet. Once applicants transmit"
-        " their packages, they will appear securely here."
-    )
+    st.info("No application submissions recorded yet.")
 
 # --- PORTAL VIEW 1: PUBLIC APPLICANT SUBMISSION (DEFAULT) ---
 else:
@@ -252,7 +312,6 @@ else:
           " attached."
       )
     else:
-      # Save submission record to CSV for BEZA evaluators
       sub_data = {
           "Timestamp": [pd.Timestamp.now()],
           "Module": [selected_form],
