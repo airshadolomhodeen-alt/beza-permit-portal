@@ -2,13 +2,14 @@
 Bangsamoro Economic Zone Authority (BEZA) - Electronic Permitting & E-Services Portal
 Office of the Building Official | RA 11032 ARTA Compliant
 """
+
 from datetime import datetime
 import hashlib
 import os
+import re
 from typing import Any, Dict, List, Optional, Tuple
 import pandas as pd
 import streamlit as st
-from werkzeug.utils import secure_filename
 
 # ==========================================
 # 1. CONSTANTS & CONFIGURATION
@@ -95,9 +96,12 @@ def ensure_upload_directory(directory: str) -> None:
 
 
 def sanitize_filename(filename: str) -> str:
-  """Sanitizes uploaded filenames to prevent directory traversal and path injection."""
-  base_name = secure_filename(filename)
-  return base_name if base_name else "unnamed_attachment.pdf"
+  """Sanitizes uploaded filenames using pure Python standard library to prevent directory traversal."""
+  if not filename:
+    return "unnamed_attachment.pdf"
+  base_name = os.path.basename(filename)
+  cleaned = re.sub(r"[^a-zA-Z0-9._-]", "_", base_name)
+  return cleaned if cleaned else "unnamed_attachment.pdf"
 
 
 def hash_string(input_str: str) -> str:
@@ -107,7 +111,6 @@ def hash_string(input_str: str) -> str:
 
 def verify_admin_pin(entered_pin: str) -> bool:
   """Verifies the entered admin PIN against stored secrets hash with secure fallback."""
-  # Default fallback hash for 'BEZA2026' if st.secrets is unconfigured
   default_hash = hash_string("BEZA2026")
   stored_hash = st.secrets.get("ADMIN_PIN_HASH", default_hash)
   return hash_string(entered_pin) == stored_hash
@@ -120,7 +123,6 @@ def load_submissions(csv_path: str) -> pd.DataFrame:
 
   try:
     df = pd.read_csv(csv_path)
-    # Schema validation: Ensure all mandatory columns are present
     missing_cols = [col for col in REQUIRED_COLUMNS if col not in df.columns]
     if missing_cols:
       for col in missing_cols:
@@ -142,7 +144,7 @@ def save_submissions(df: pd.DataFrame, csv_path: str) -> bool:
     df.to_csv(csv_path, index=False)
     return True
   except Exception as e:
-    st.error(f"❌ Critical I/O Error: Failed to persist database. ({e}))")
+    st.error(f"❌ Critical I/O Error: Failed to persist database. ({e})")
     return False
 
 
@@ -287,7 +289,6 @@ def render_admin_dashboard() -> None:
     st.info("No application submissions recorded in the database yet.")
     return
 
-  # Metrics Overview
   col_m1, col_m2, col_m3 = st.columns(3)
   with col_m1:
     st.metric("Total Submissions", len(df_submissions))
@@ -353,7 +354,6 @@ def render_admin_dashboard() -> None:
       st.success(f"Status updated to **{new_status}** successfully!")
       st.rerun()
 
-  # Document inspection download buttons
   col_f1, col_f2 = st.columns(2)
   with col_f1:
     form_path = current_row.get("Form_Path", "")
@@ -546,7 +546,6 @@ def render_public_submission_form(module_name: str) -> None:
     )
 
   if submitted:
-    # Validation checks
     if (
         not owner_name
         or not tin
@@ -562,7 +561,6 @@ def render_public_submission_form(module_name: str) -> None:
           " valid project metrics, and required PDF documents are attached."
       )
     else:
-      # Generate secure tracking reference and sanitize file paths to prevent collisions
       auto_ref_no = f"BEZA-{pd.Timestamp.now().strftime('%Y%m%d%H%M%S')}"
 
       safe_form_name = sanitize_filename(uploaded_application_form.name)
