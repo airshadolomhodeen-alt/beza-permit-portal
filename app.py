@@ -130,8 +130,8 @@ with st.sidebar:
 if show_admin:
   st.markdown("### 🛡️ BEZA Official Evaluation & Review Dashboard")
   st.write(
-      "Review incoming applicant submissions, edit records, delete invalid"
-      " entries, and export compliance logs."
+      "Review incoming applicant submissions, edit reference numbers, delete"
+      " invalid entries, and export compliance logs."
   )
 
   csv_file = "submissions.csv"
@@ -146,7 +146,6 @@ if show_admin:
     st.markdown("### ⚙️ Manage / Edit / Delete Submissions")
 
     if len(df_submissions) > 0:
-      # Select record index to manage
       row_indices = list(range(len(df_submissions)))
       selected_idx = st.selectbox(
           "Select Row Index to Edit or Delete",
@@ -206,7 +205,6 @@ if show_admin:
           st.rerun()
 
     st.markdown("---")
-    # Export button for officials
     csv_bytes = df_submissions.to_csv(index=False).encode("utf-8")
     st.download_button(
         label="📥 Export Submission Audit Log (CSV)",
@@ -234,11 +232,9 @@ else:
         unsafe_allow_html=True,
     )
 
-    c1, c2, c3 = st.columns(3)
-    app_ref_no = c1.text_input(
-        "Application Reference No.", placeholder="BEZA-2026-XXXX"
-    )
-    proj_category = c2.selectbox(
+    # Note: Application Reference No. is removed from applicant input and generated automatically by system.
+    c1, c2 = st.columns(2)
+    proj_category = c1.selectbox(
         "Project Classification",
         [
             "Commercial",
@@ -248,7 +244,7 @@ else:
             "Infrastructure",
         ],
     )
-    submission_stage = c3.radio(
+    submission_stage = c2.radio(
         "Submission Type", ["Original Filing", "Resubmission / Compliance"]
     )
 
@@ -312,10 +308,13 @@ else:
           " attached."
       )
     else:
+      # Automatically generate a secure, unique system reference number (e.g., BEZA-2026-10201452)
+      auto_ref_no = f"BEZA-{pd.Timestamp.now().strftime('%Y%m%d%H%M%S')}"
+
       sub_data = {
           "Timestamp": [pd.Timestamp.now()],
           "Module": [selected_form],
-          "App_Ref_No": [app_ref_no or "BEZA-2026-AUTO"],
+          "App_Ref_No": [auto_ref_no],
           "Category": [proj_category],
           "Owner_Name": [owner_name],
           "TIN": [tin],
@@ -337,8 +336,9 @@ else:
       df_combined.to_csv(csv_file, index=False)
 
       st.success(
-          "✅ **Transmission Successful:** Your technical documentation"
-          " package has been logged into the BEZA regulatory gateway for"
-          " initial review by the Office of the Building Official."
+          f"✅ **Transmission Successful!** Your application has been logged into"
+          f" the BEZA gateway.\n\n"
+          f"📌 **System-Generated Tracking Reference No.:** `{auto_ref_no}`"
+          " (Please save this for your records.)"
       )
       st.balloons()
