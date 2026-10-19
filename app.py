@@ -78,38 +78,46 @@ filename_map = {
     ),
 }
 
-# --- SIDEBAR NAVIGATION ---
+# --- SIDEBAR NAVIGATION & SECURE ADMIN GATEWAY ---
 with st.sidebar:
   if os.path.exists(logo_filename):
     st.image(logo_filename, width=110)
 
-  portal_mode = st.radio(
-      "Portal Navigation", ["Applicant Submission", "BEZA Official Review"]
+  st.markdown("### 📋 Regulatory Modules")
+  selected_form = st.selectbox(
+      "Select Application / Permit Form", list(filename_map.keys())
   )
 
   st.markdown("---")
-  if portal_mode == "Applicant Submission":
-    st.markdown("### 📋 Regulatory Modules")
-    selected_form = st.selectbox(
-        "Select Application / Permit Form", list(filename_map.keys())
-    )
+  st.markdown("### 📥 Document Center")
+  st.write("Download official blank templates for offline encoding:")
 
-    st.markdown("---")
-    st.markdown("### 📥 Document Center")
-    st.write("Download official blank templates for offline encoding:")
+  target_file = filename_map.get(selected_form)
+  if target_file and os.path.exists(target_file):
+    with open(target_file, "rb") as pdf_file:
+      st.download_button(
+          label="📄 Download Blank Official PDF",
+          data=pdf_file,
+          file_name=target_file,
+          mime="application/pdf",
+          type="primary",
+      )
+  else:
+    st.warning("Template file not found in repository.")
 
-    target_file = filename_map.get(selected_form)
-    if target_file and os.path.exists(target_file):
-      with open(target_file, "rb") as pdf_file:
-        st.download_button(
-            label="📄 Download Blank Official PDF",
-            data=pdf_file,
-            file_name=target_file,
-            mime="application/pdf",
-            type="primary",
-        )
-    else:
-      st.warning("Template file not found in repository.")
+  st.markdown("---")
+  st.markdown("### 🔒 BEZA Official Gateway")
+  admin_toggle = st.checkbox("Access Official Review Panel")
+
+  show_admin = False
+  if admin_toggle:
+    # Secure PIN protection for evaluators (You can change "BEZA2026" to any PIN you prefer)
+    admin_pin = st.text_input("Enter Official Access PIN", type="password")
+    if admin_pin == "BEZA2026":
+      show_admin = True
+      st.success("Access Granted.")
+    elif admin_pin != "":
+      st.error("Invalid PIN.")
 
   st.markdown("---")
   st.markdown("### ⚖️ ARTA Compliance")
@@ -119,8 +127,39 @@ with st.sidebar:
   )
 
 
-# --- PORTAL VIEW 1: APPLICANT SUBMISSION ---
-if portal_mode == "Applicant Submission":
+# --- PORTAL VIEW 2: SECURE BEZA OFFICIAL REVIEW DASHBOARD ---
+if show_admin:
+  st.markdown("### 🛡️ BEZA Official Evaluation & Review Dashboard")
+  st.write(
+      "Review incoming applicant submissions, track metadata, and export"
+      " compliance logs for technical auditing."
+  )
+
+  csv_file = "submissions.csv"
+  if os.path.exists(csv_file):
+    df_submissions = pd.read_csv(csv_file)
+    st.markdown(
+        f"**Total Received Applications:** {len(df_submissions)}"
+    )
+    st.dataframe(df_submissions, use_container_width=True)
+
+    # Export button for officials
+    csv_bytes = df_submissions.to_csv(index=False).encode("utf-8")
+    st.download_button(
+        label="📥 Export Submission Audit Log (CSV)",
+        data=csv_bytes,
+        file_name="BEZA_Audit_Logs.csv",
+        mime="text/csv",
+        type="primary",
+    )
+  else:
+    st.info(
+        "No application submissions recorded yet. Once applicants transmit"
+        " their packages, they will appear securely here."
+    )
+
+# --- PORTAL VIEW 1: PUBLIC APPLICANT SUBMISSION (DEFAULT) ---
+else:
   st.markdown(f"### Active Module: **{selected_form}**")
   st.info(
       "**Workflow Instructions:** 1. Download the official blank form from the"
@@ -244,34 +283,3 @@ if portal_mode == "Applicant Submission":
           " initial review by the Office of the Building Official."
       )
       st.balloons()
-
-# --- PORTAL VIEW 2: BEZA OFFICIAL REVIEW DASHBOARD ---
-else:
-  st.markdown("### 🛡️ BEZA Official Evaluation & Review Dashboard")
-  st.write(
-      "Review incoming applicant submissions, track metadata, and export"
-      " compliance logs for technical auditing."
-  )
-
-  csv_file = "submissions.csv"
-  if os.path.exists(csv_file):
-    df_submissions = pd.read_csv(csv_file)
-    st.markdown(
-        f"**Total Received Applications:** {len(df_submissions)}"
-    )
-    st.dataframe(df_submissions, use_container_width=True)
-
-    # Export button for officials
-    csv_bytes = df_submissions.to_csv(index=False).encode("utf-8")
-    st.download_button(
-        label="📥 Export Submission Audit Log (CSV)",
-        data=csv_bytes,
-        file_name="BEZA_Audit_Logs.csv",
-        mime="text/csv",
-        type="primary",
-    )
-  else:
-    st.info(
-        "No application submissions recorded yet. Once applicants transmit"
-        " their packages, they will appear securely here."
-    )
