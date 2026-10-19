@@ -81,6 +81,8 @@ filename_map = {
     "Excavation & Ground Preparation Permit": (
         "Application-Form-Excavation-Ground-Preparation-and-Soil-Investigation.pdf"
     ),
+    "Building Permit Checklist": ("building permit.pdf"
+    ),
 }
 
 # Initialize session state variables for authentication persistence
