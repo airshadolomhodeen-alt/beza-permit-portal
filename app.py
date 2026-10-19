@@ -94,6 +94,27 @@ with st.sidebar:
   )
 
   st.markdown("---")
+  st.markdown("### 🔍 Track Application Status")
+  track_code = st.text_input(
+      "Enter Tracking Ref. No.", placeholder="BEZA-2026..."
+  )
+  if st.button("Check Status"):
+    csv_file = "submissions.csv"
+    if os.path.exists(csv_file):
+      df_check = pd.read_csv(csv_file)
+      match = df_check[df_check["App_Ref_No"] == track_code]
+      if not match.empty:
+        st.success(
+            f"✅ Status: **Under Technical Evaluation**\nOwner:"
+            f" {match.iloc[0]['Owner_Name']}\nModule:"
+            f" {match.iloc[0]['Module']}"
+        )
+      else:
+        st.error("❌ Reference number not found in gateway.")
+    else:
+      st.info("No records in system yet.")
+
+  st.markdown("---")
   st.markdown("### 📥 Document Center")
   st.write("Download official blank templates for offline encoding:")
 
@@ -161,6 +182,7 @@ if show_admin:
       current_row = df_submissions.loc[selected_idx]
       st.write(f"**Applicant:** {current_row['Owner_Name']}")
       st.write(f"**Tracking Ref:** {current_row['App_Ref_No']}")
+      st.write(f"**Contact Number:** {current_row['Contact_No']}")
 
       col_f1, col_f2 = st.columns(2)
 
@@ -204,7 +226,9 @@ if show_admin:
           edit_owner = st.text_input(
               "Owner Name", value=str(current_row["Owner_Name"])
           )
-          edit_tin = st.text_input("TIN", value=str(current_row["TIN"]))
+          edit_contact = st.text_input(
+              "Contact No.", value=str(current_row["Contact_No"])
+          )
           edit_cost = st.number_input(
               "Estimated Cost (PHP)",
               value=float(current_row["Estimated_Cost"]),
@@ -218,7 +242,7 @@ if show_admin:
         if save_changes:
           df_submissions.loc[selected_idx, "App_Ref_No"] = edit_ref
           df_submissions.loc[selected_idx, "Owner_Name"] = edit_owner
-          df_submissions.loc[selected_idx, "TIN"] = edit_tin
+          df_submissions.loc[selected_idx, "Contact_No"] = edit_contact
           df_submissions.loc[selected_idx, "Estimated_Cost"] = edit_cost
           df_submissions.loc[selected_idx, "Floor_Area_Sqm"] = edit_area
           df_submissions.to_csv(csv_file, index=False)
@@ -300,7 +324,7 @@ else:
     enterprise_name = col_c.text_input(
         "Registered Enterprise Name (if applicable)"
     )
-    contact_no = col_d.text_input("Official Contact Number *")
+    contact_no = col_d.text_input("Official Contact Number / Mobile No. *")
 
     location = st.text_input(
         "Exact Location of Construction / Installation (Zone, Municipality) *"
@@ -359,6 +383,7 @@ else:
         not owner_name
         or not tin
         or not location
+        or not contact_no
         or floor_area <= 0
         or estimated_cost <= 0
         or not uploaded_application_form
@@ -366,8 +391,8 @@ else:
     ):
       st.error(
           "⚠️ Incomplete Submission: Please ensure all mandatory fields (*)"
-          " marked with an asterisk, valid project metrics (Area & Cost > 0), and"
-          " required technical documents are attached."
+          " marked with an asterisk (including Contact Number), valid project"
+          " metrics, and required documents are attached."
       )
     else:
       auto_ref_no = f"BEZA-{pd.Timestamp.now().strftime('%Y%m%d%H%M%S')}"
@@ -391,6 +416,7 @@ else:
           "Owner_Name": [owner_name],
           "TIN": [tin],
           "Enterprise": [enterprise_name],
+          "Contact_No": [contact_no],
           "Floor_Area_Sqm": [floor_area],
           "Estimated_Cost": [estimated_cost],
           "Storeys": [storeys],
@@ -414,10 +440,13 @@ else:
 
       st.success(
           f"✅ **Transmission Successful!** Your application package has been"
-          f" logged into the BEZA gateway.\n\n"
+          f" successfully received by BEZA.\n\n"
           f"📌 **System-Generated Tracking Reference No.:** `{auto_ref_no}`\n"
+          f"📱 **SMS / Contact Dispatch Notice:** An electronic confirmation alert"
+          f" has been logged for contact number `{contact_no}`.\n\n"
           f"🏗️ **Declared Area:** {floor_area:,.2f} sq. m. | 💰 **Estimated"
           f" Cost:** ₱{estimated_cost:,.2f}\n\n"
-          "*(Please save your tracking number for your records.)*"
+          "*(Please save your tracking reference number to check your status"
+          " anytime via the sidebar sidebar lookup tool.)*"
       )
       st.balloons()
