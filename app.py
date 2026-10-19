@@ -83,6 +83,9 @@ filename_map = {
     ),
     "Building Permit Checklist": ("building permit.pdf"
     ),
+     ),
+    "Anti Graft": ("anti_graft_1.doc"
+    ),
 }
 
 # Initialize session state variables for authentication persistence
