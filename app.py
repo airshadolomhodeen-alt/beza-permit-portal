@@ -1,9 +1,7 @@
 """
 Bangsamoro Economic Zone Authority (BEZA) - Electronic Permitting & E-Services Portal
 Office of the Building Official | RA 11032 ARTA Compliant
-Office of the Building Official-BEZA
 """
-
 from datetime import datetime
 import hashlib
 import os
