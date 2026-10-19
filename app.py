@@ -21,6 +21,11 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+# Ensure uploads directory exists
+UPLOAD_DIR = "uploads"
+if not os.path.exists(UPLOAD_DIR):
+  os.makedirs(UPLOAD_DIR)
+
 # --- HEADER WITH OFFICIAL LOGO ---
 logo_filename = "BEZA-LOGO-Copy-300x300.png"
 
@@ -126,12 +131,12 @@ with st.sidebar:
   )
 
 
-# --- PORTAL VIEW 2: SECURE BEZA OFFICIAL REVIEW & EDIT/DELETE DASHBOARD ---
+# --- PORTAL VIEW 2: SECURE BEZA OFFICIAL REVIEW & FILE INSPECTION ---
 if show_admin:
   st.markdown("### 🛡️ BEZA Official Evaluation & Review Dashboard")
   st.write(
-      "Review incoming applicant submissions, edit records, delete invalid"
-      " entries, and export compliance logs."
+      "Review incoming applicant submissions, inspect/download uploaded files,"
+      " edit records, or delete entries."
   )
 
   csv_file = "submissions.csv"
@@ -143,22 +148,55 @@ if show_admin:
     st.dataframe(df_submissions, use_container_width=True)
 
     st.markdown("---")
-    st.markdown("### ⚙️ Manage / Edit / Delete Submissions")
+    st.markdown("### 🔍 Inspect & Download Applicant Files")
 
     if len(df_submissions) > 0:
       row_indices = list(range(len(df_submissions)))
       selected_idx = st.selectbox(
-          "Select Row Index to Edit or Delete",
+          "Select Row Index to Inspect Files",
           row_indices,
           format_func=lambda x: f"Row {x} - {df_submissions.loc[x, 'Owner_Name']} ({df_submissions.loc[x, 'App_Ref_No']})",
       )
 
+      current_row = df_submissions.loc[selected_idx]
+      st.write(f"**Applicant:** {current_row['Owner_Name']}")
+      st.write(f"**Tracking Ref:** {current_row['App_Ref_No']}")
+
+      col_f1, col_f2 = st.columns(2)
+
+      with col_f1:
+        form_path = current_row.get("Form_Path", "")
+        if isinstance(form_path, str) and os.path.exists(form_path):
+          with open(form_path, "rb") as f:
+            st.download_button(
+                label="📥 Download Submitted Application Form",
+                data=f,
+                file_name=os.path.basename(form_path),
+                mime="application/pdf",
+                key=f"dl_form_{selected_idx}",
+            )
+        else:
+          st.info("Application form file not found on server.")
+
+      with col_f2:
+        plans_path = current_row.get("Plans_Path", "")
+        if isinstance(plans_path, str) and os.path.exists(plans_path):
+          with open(plans_path, "rb") as f:
+            st.download_button(
+                label="📥 Download Engineering Plans",
+                data=f,
+                file_name=os.path.basename(plans_path),
+                mime="application/pdf",
+                key=f"dl_plans_{selected_idx}",
+            )
+        else:
+          st.info("Engineering plans file not found on server.")
+
+      st.markdown("---")
+      st.markdown("### ⚙️ Manage / Edit / Delete Submissions")
       col_edit, col_del = st.columns(2)
 
       with col_edit:
-        st.markdown("#### Edit Selected Record")
-        current_row = df_submissions.loc[selected_idx]
-
         with st.form("edit_form"):
           edit_ref = st.text_input(
               "Application Reference No.", value=str(current_row["App_Ref_No"])
@@ -191,7 +229,6 @@ if show_admin:
           st.rerun()
 
       with col_del:
-        st.markdown("#### Delete Selected Record")
         st.warning(
             "⚠️ Deleting a record is permanent and removes it from the audit"
             " log."
@@ -335,6 +372,17 @@ else:
     else:
       auto_ref_no = f"BEZA-{pd.Timestamp.now().strftime('%Y%m%d%H%M%S')}"
 
+      # Save physical uploaded files securely into the 'uploads/' folder
+      form_filename = f"{auto_ref_no}_form_{uploaded_application_form.name}"
+      form_path = os.path.join(UPLOAD_DIR, form_filename)
+      with open(form_path, "wb") as f:
+        f.write(uploaded_application_form.getbuffer())
+
+      plans_filename = f"{auto_ref_no}_plans_{uploaded_plans.name}"
+      plans_path = os.path.join(UPLOAD_DIR, plans_filename)
+      with open(plans_path, "wb") as f:
+        f.write(uploaded_plans.getbuffer())
+
       sub_data = {
           "Timestamp": [pd.Timestamp.now()],
           "Module": [selected_form],
@@ -349,7 +397,9 @@ else:
           "Materials": [materials],
           "Location": [location],
           "Form_File": [uploaded_application_form.name],
+          "Form_Path": [form_path],
           "Plans_File": [uploaded_plans.name],
+          "Plans_Path": [plans_path],
       }
       df_new = pd.DataFrame(sub_data)
       csv_file = "submissions.csv"
