@@ -51,27 +51,27 @@ st.markdown("---")
 
 # Map form names to actual filenames in your root directory
 filename_map = {
-    "BEZA.EESSU.F.001 BUILDING PERMIT": "BEZA.EESSU.F.001 BUILDING PERMIT.pdf",
+    "BUILDING PERMIT": "BEZA.EESSU.F.001 BUILDING PERMIT.pdf",
     "BEZA.EESSU.F.002 MECHANICAL PERMIT": (
         "BEZA.EESSU.F.002 MECHANICAL PERMIT.pdf"
     ),
-    "BEZA.EESSU.F.003 ELECTRICAL PERMIT": (
+    "ELECTRICAL PERMIT": (
         "BEZA.EESSU.F.003 ELECTRICAL PERMIT.pdf"
     ),
-    "BEZA.EESSU.F.004 ELECTRONICS PERMIT": (
+    "ELECTRONICS PERMIT": (
         "BEZA.EESSU.F.004 ELECTRONICS PERMIT.pdf"
     ),
-    "BEZA.EESSU.F.005 FENCING PERMIT": "BEZA.EESSU.F.005 FENCING PERMIT.pdf",
-    "BEZA.EESSU.F.006 SANITARY AND PLUMBING PERMIT": (
+    "FENCING PERMIT": "BEZA.EESSU.F.005 FENCING PERMIT.pdf",
+    "SANITARY AND PLUMBING PERMIT": (
         "BEZA.EESSU.F.006 SANITARY AND PLUMBING PERMIT.pdf"
     ),
-    "BEZA.EESSU.F.007 Mechanical Data Sheet": (
+    "Mechanical Data Sheet": (
         "BEZA.EESSU.F.007 Mechanical Data Sheet.pdf"
     ),
-    "BEZA.EESSU.F.008 Electrical Data Sheet": (
+    "Electrical Data Sheet": (
         "BEZA.EESSU.F.008 Electrical Data Sheet.pdf"
     ),
-    "BEZA.EESSU.F.009 Electronics Data Sheet": (
+    "Electronics Data Sheet": (
         "BEZA.EESSU.F.009 Electronics Data Sheet.pdf"
     ),
     "BEZA DEMOLITION PERMIT": "BEZA DEMOLITION PERMIT FORM.pdf",
