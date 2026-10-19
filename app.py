@@ -130,8 +130,8 @@ with st.sidebar:
 if show_admin:
   st.markdown("### 🛡️ BEZA Official Evaluation & Review Dashboard")
   st.write(
-      "Review incoming applicant submissions, edit reference numbers, delete"
-      " invalid entries, and export compliance logs."
+      "Review incoming applicant submissions, edit records, delete invalid"
+      " entries, and export compliance logs."
   )
 
   csv_file = "submissions.csv"
@@ -167,8 +167,12 @@ if show_admin:
               "Owner Name", value=str(current_row["Owner_Name"])
           )
           edit_tin = st.text_input("TIN", value=str(current_row["TIN"]))
-          edit_loc = st.text_input(
-              "Location", value=str(current_row["Location"])
+          edit_cost = st.number_input(
+              "Estimated Cost (PHP)",
+              value=float(current_row["Estimated_Cost"]),
+          )
+          edit_area = st.number_input(
+              "Floor Area (sq. m.)", value=float(current_row["Floor_Area_Sqm"])
           )
 
           save_changes = st.form_submit_button("💾 Save Changes")
@@ -177,7 +181,8 @@ if show_admin:
           df_submissions.loc[selected_idx, "App_Ref_No"] = edit_ref
           df_submissions.loc[selected_idx, "Owner_Name"] = edit_owner
           df_submissions.loc[selected_idx, "TIN"] = edit_tin
-          df_submissions.loc[selected_idx, "Location"] = edit_loc
+          df_submissions.loc[selected_idx, "Estimated_Cost"] = edit_cost
+          df_submissions.loc[selected_idx, "Floor_Area_Sqm"] = edit_area
           df_submissions.to_csv(csv_file, index=False)
           st.success(
               f"✅ Row {selected_idx} successfully updated! Please refresh the"
@@ -232,8 +237,7 @@ else:
         unsafe_allow_html=True,
     )
 
-    # Note: Application Reference No. is removed from applicant input and generated automatically by system.
-    c1, c2 = st.columns(2)
+    c1, c2, c3 = st.columns(3)
     proj_category = c1.selectbox(
         "Project Classification",
         [
@@ -247,6 +251,7 @@ else:
     submission_stage = c2.radio(
         "Submission Type", ["Original Filing", "Resubmission / Compliance"]
     )
+    storeys = c3.number_input("Number of Storeys", min_value=1, step=1)
 
     col_a, col_b = st.columns([2, 1])
     owner_name = col_a.text_input(
@@ -266,7 +271,25 @@ else:
 
     st.markdown("---")
     st.markdown(
-        '<div class="section-header">2. Technical Document Attachments (PDF / CAD'
+        '<div class="section-header">2. Engineering Metrics & Cost Estimates'
+        " (Box 3A Data)</div>",
+        unsafe_allow_html=True,
+    )
+
+    m1, m2, m3 = st.columns(3)
+    floor_area = m1.number_input(
+        "Total Floor Area (sq. m.) *", min_value=0.0, step=1.0
+    )
+    estimated_cost = m2.number_input(
+        "Total Estimated Project Cost (PHP) *", min_value=0.0, step=1000.0
+    )
+    materials = m3.selectbox(
+        "Primary Materials", ["Concrete", "Steel", "Wooden", "Mixed"]
+    )
+
+    st.markdown("---")
+    st.markdown(
+        '<div class="section-header">3. Technical Document Attachments (PDF / CAD'
         " Packages)</div>",
         unsafe_allow_html=True,
     )
@@ -299,16 +322,17 @@ else:
         not owner_name
         or not tin
         or not location
+        or floor_area <= 0
+        or estimated_cost <= 0
         or not uploaded_application_form
         or not uploaded_plans
     ):
       st.error(
           "⚠️ Incomplete Submission: Please ensure all mandatory fields (*)"
-          " marked with an asterisk and required technical documents are"
-          " attached."
+          " marked with an asterisk, valid project metrics (Area & Cost > 0), and"
+          " required technical documents are attached."
       )
     else:
-      # Automatically generate a secure, unique system reference number (e.g., BEZA-2026-10201452)
       auto_ref_no = f"BEZA-{pd.Timestamp.now().strftime('%Y%m%d%H%M%S')}"
 
       sub_data = {
@@ -319,7 +343,10 @@ else:
           "Owner_Name": [owner_name],
           "TIN": [tin],
           "Enterprise": [enterprise_name],
-          "Contact": [contact_no],
+          "Floor_Area_Sqm": [floor_area],
+          "Estimated_Cost": [estimated_cost],
+          "Storeys": [storeys],
+          "Materials": [materials],
           "Location": [location],
           "Form_File": [uploaded_application_form.name],
           "Plans_File": [uploaded_plans.name],
@@ -336,9 +363,11 @@ else:
       df_combined.to_csv(csv_file, index=False)
 
       st.success(
-          f"✅ **Transmission Successful!** Your application has been logged into"
-          f" the BEZA gateway.\n\n"
-          f"📌 **System-Generated Tracking Reference No.:** `{auto_ref_no}`"
-          " (Please save this for your records.)"
+          f"✅ **Transmission Successful!** Your application package has been"
+          f" logged into the BEZA gateway.\n\n"
+          f"📌 **System-Generated Tracking Reference No.:** `{auto_ref_no}`\n"
+          f"🏗️ **Declared Area:** {floor_area:,.2f} sq. m. | 💰 **Estimated"
+          f" Cost:** ₱{estimated_cost:,.2f}\n\n"
+          "*(Please save your tracking number for your records.)*"
       )
       st.balloons()
