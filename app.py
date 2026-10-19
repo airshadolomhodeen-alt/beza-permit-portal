@@ -68,7 +68,7 @@ with st.form("permit_application_form"):
   col1, col2, col3 = st.columns(3)
   app_no = col1.text_input("Application No.", placeholder="BEZA-2026-XXXX")
   permit_no = col2.text_input("Permit No. (Leave blank if new)")
-  app_type = col3.radio("Application Type", ["ORIGINAL", "RENEWAL"], horizontal=True)
+  app_type = st.radio("Application Type", ["ORIGINAL", "RENEWAL"], horizontal=True)
 
   st.markdown("---")
   st.markdown("#### 1. Applicant & Enterprise Information")
@@ -143,8 +143,9 @@ with st.form("permit_application_form"):
 
 # --- PDF OVERLAY & GENERATION FUNCTION ---
 def overlay_data_on_pdf(template_filename, form_data):
-  """Loads the blank PDF template from assets/ and stamps user inputs at precise coordinates."""
-  template_path = os.path.join("assets", template_filename)
+  """Loads the blank PDF template directly from the root directory and stamps user inputs."""
+  # Updated path: looks directly in the repository root where your PDFs are currently uploaded
+  template_path = template_filename
 
   if not os.path.exists(template_path):
     return None
@@ -154,7 +155,6 @@ def overlay_data_on_pdf(template_filename, form_data):
   page = doc[0]  # Target first page
 
   # Define coordinate mappings (x, y points) for standard BEZA layout forms
-  # Note: You can fine-tune these coordinates depending on your exact scanned PDF resolution.
   page.insert_text(
       (150, 115), form_data.get("app_no", ""), fontsize=10, color=(0, 0, 0)
   )
@@ -197,7 +197,7 @@ if submitted:
         "🎉 Form successfully validated and compiled according to ARTA standards!"
     )
 
-    # Map form names to actual filenames in your assets folder
+    # Map form names to actual filenames in your root directory
     filename_map = {
         "BEZA.EESSU.F.001 BUILDING PERMIT": "BEZA.EESSU.F.001 BUILDING PERMIT.pdf",
         "BEZA.EESSU.F.002 MECHANICAL PERMIT": (
@@ -254,7 +254,6 @@ if submitted:
       )
     else:
       st.warning(
-          f"Template file `{target_file}` not found in the `assets/` folder."
-          " Please upload your PDF templates to GitHub to enable direct"
-          " overlay generation."
+          f"Template file `{target_file}` could not be found in the repository"
+          " root folder. Please verify the exact filename."
       )
