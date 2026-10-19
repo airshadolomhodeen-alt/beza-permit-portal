@@ -32,37 +32,53 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+# Map form names to actual filenames in your root directory
+filename_map = {
+    "BEZA.EESSU.F.001 BUILDING PERMIT": "BEZA.EESSU.F.001 BUILDING PERMIT.pdf",
+    "BEZA.EESSU.F.002 MECHANICAL PERMIT": "BEZA.EESSU.F.002 MECHANICAL PERMIT.pdf",
+    "BEZA.EESSU.F.003 ELECTRICAL PERMIT": "BEZA.EESSU.F.003 ELECTRICAL PERMIT.pdf",
+    "BEZA.EESSU.F.004 ELECTRONICS PERMIT": "BEZA.EESSU.F.004 ELECTRONICS PERMIT.pdf",
+    "BEZA.EESSU.F.005 FENCING PERMIT": "BEZA.EESSU.F.005 FENCING PERMIT.pdf",
+    "BEZA.EESSU.F.006 SANITARY AND PLUMBING PERMIT": "BEZA.EESSU.F.006 SANITARY AND PLUMBING PERMIT.pdf",
+    "BEZA.EESSU.F.007 Mechanical Data Sheet": "BEZA.EESSU.F.007 Mechanical Data Sheet.pdf",
+    "BEZA.EESSU.F.008 Electrical Data Sheet": "BEZA.EESSU.F.008 Electrical Data Sheet.pdf",
+    "BEZA.EESSU.F.009 Electronics Data Sheet": "BEZA.EESSU.F.009 Electronics Data Sheet.pdf",
+    "BEZA DEMOLITION PERMIT": "BEZA DEMOLITION PERMIT FORM.pdf",
+    "BEZA SIGN & SIGN STRUCTURE PERMIT": "BEZA SIGN AND SIGN STRUCTURE PERMIT FORM MERGED.pdf",
+    "Excavation & Ground Preparation Permit": "Application-Form-Excavation-Ground-Preparation-and-Soil-Investigation.pdf",
+}
+
 # --- SIDEBAR NAVIGATION ---
 with st.sidebar:
   st.markdown("### 📋 Select Permit / Form")
-  permit_choice = st.selectbox(
-      "Choose Application Form",
-      [
-          "BEZA.EESSU.F.001 BUILDING PERMIT",
-          "BEZA.EESSU.F.002 MECHANICAL PERMIT",
-          "BEZA.EESSU.F.003 ELECTRICAL PERMIT",
-          "BEZA.EESSU.F.004 ELECTRONICS PERMIT",
-          "BEZA.EESSU.F.005 FENCING PERMIT",
-          "BEZA.EESSU.F.006 SANITARY AND PLUMBING PERMIT",
-          "BEZA.EESSU.F.007 Mechanical Data Sheet",
-          "BEZA.EESSU.F.008 Electrical Data Sheet",
-          "BEZA.EESSU.F.009 Electronics Data Sheet",
-          "BEZA DEMOLITION PERMIT",
-          "BEZA SIGN & SIGN STRUCTURE PERMIT",
-          "Excavation & Ground Preparation Permit",
-      ],
-  )
+  permit_choice = st.selectbox("Choose Application Form", list(filename_map.keys()))
 
   st.markdown("---")
-  st.markdown("### ℹ️ Guidelines")
+  st.markdown("### 📥 Download Blank Official Form")
+  st.write("Need the raw printable PDF? Download it directly below:")
+
+  target_file = filename_map.get(permit_choice)
+  if target_file and os.path.exists(target_file):
+    with open(target_file, "rb") as pdf_file:
+      st.download_button(
+          label=f"📄 Download Blank PDF",
+          data=pdf_file,
+          file_name=target_file,
+          mime="application/pdf",
+      )
+  else:
+    st.warning("Blank PDF file not found in repository root.")
+
+  st.markdown("---")
+  st.markdown("### ℹ️ ARTA Compliance")
   st.info(
-      "Ensure all technical data is reviewed by your licensed professional"
-      " before generating the final printable submission."
+      "Applicants can either fill out the digital portal for automated filing"
+      " or download blank forms for manual completion."
   )
 
 
 # --- CORE DATA ENTRY FORM ---
-st.markdown(f"### Current Application Module: **{permit_choice}**")
+st.markdown(f"### Digital Filing Module: **{permit_choice}**")
 
 with st.form("permit_application_form"):
   col1, col2, col3 = st.columns(3)
@@ -89,95 +105,45 @@ with st.form("permit_application_form"):
       " *"
   )
 
-  st.markdown("---")
-  st.markdown("#### 2. Project Scope & Technical Specifications")
-
-  if "BUILDING PERMIT" in permit_choice:
-    scope = st.multiselect(
-        "Scope of Work",
-        ["New Construction", "Addition", "Repair", "Renovation", "Demolition"],
-    )
-    occupancy = st.selectbox(
-        "Type of Occupancy",
-        [
-            "Residential",
-            "Commercial",
-            "Industrial",
-            "Institutional",
-            "Agricultural",
-        ],
-    )
-    est_cost = st.number_input(
-        "Total Estimated Construction Cost (PHP)", min_value=0.0, step=10000.0
-    )
-
-  elif "MECHANICAL" in permit_choice:
-    mech_type = st.text_input(
-        "Type of Mechanical Equipment / Installation (e.g., Boiler, Elevator,"
-        " Aircon)"
-    )
-    mech_cost = st.number_input(
-        "Estimated Cost of Mechanical Installation (PHP)",
-        min_value=0.0,
-        step=5000.0,
-    )
-
-  elif "ELECTRICAL" in permit_choice:
-    total_connected_load = st.text_input(
-        "Total Connected Load (kVA / kW)"
-    )
-    elec_cost = st.number_input(
-        "Estimated Cost of Electrical Installation (PHP)",
-        min_value=0.0,
-        step=5000.0,
-    )
-
-  else:
-    general_notes = st.text_area(
-        "Specific Details / Scope of Installation / Remarks"
-    )
-
   submitted = st.form_submit_button(
-      "🚀 Validate & Compile Official Printable Form", type="primary"
+      "🚀 Generate Filled Digital Application", type="primary"
   )
 
-# --- PDF OVERLAY & GENERATION FUNCTION ---
+# --- PDF OVERLAY FUNCTION ---
 def overlay_data_on_pdf(template_filename, form_data):
-  """Loads the blank PDF template directly from the root directory and stamps user inputs."""
-  # Updated path: looks directly in the repository root where your PDFs are currently uploaded
   template_path = template_filename
-
   if not os.path.exists(template_path):
     return None
 
-  # Open the original blank PDF using PyMuPDF
   doc = fitz.open(template_path)
-  page = doc[0]  # Target first page
+  page = doc[0]
 
-  # Define coordinate mappings (x, y points) for standard BEZA layout forms
+  # Adjusted coordinates for BEZA EESSUF.001 form layout
+  # (You can fine-tune these x, y numbers if needed based on your exact PDF dimensions)
   page.insert_text(
-      (150, 115), form_data.get("app_no", ""), fontsize=10, color=(0, 0, 0)
+      (120, 105), form_data.get("app_no", ""), fontsize=9, color=(0, 0, 0)
   )
   page.insert_text(
-      (450, 115), form_data.get("permit_no", ""), fontsize=10, color=(0, 0, 0)
+      (430, 105), form_data.get("permit_no", ""), fontsize=9, color=(0, 0, 0)
   )
   page.insert_text(
-      (70, 175), form_data.get("owner_name", ""), fontsize=10, color=(0, 0, 0)
+      (75, 175), form_data.get("owner_name", ""), fontsize=9, color=(0, 0, 0)
   )
   page.insert_text(
-      (430, 175), form_data.get("tin", ""), fontsize=10, color=(0, 0, 0)
+      (420, 175), form_data.get("tin", ""), fontsize=9, color=(0, 0, 0)
   )
   page.insert_text(
-      (70, 230), form_data.get("address", ""), fontsize=10, color=(0, 0, 0)
+      (75, 215), form_data.get("address", ""), fontsize=9, color=(0, 0, 0)
   )
   page.insert_text(
-      (430, 230), form_data.get("contact_no", ""), fontsize=10, color=(0, 0, 0)
+      (420, 215), form_data.get(
+          "contact_no", ""
+      ), fontsize=9, color=(0, 0, 0)
   )
   page.insert_text(
-      (70, 260), form_data.get("location", ""), fontsize=10, color=(0, 0, 0)
+      (75, 245), form_data.get("location", ""), fontsize=9, color=(0, 0, 0)
   )
 
-  # Save to memory buffer
   output_buffer = io.BytesIO()
   doc.save(output_buffer)
   doc.close()
@@ -193,45 +159,8 @@ if submitted:
         " proceeding."
     )
   else:
-    st.success(
-        "🎉 Form successfully validated and compiled according to ARTA standards!"
-    )
+    st.success("🎉 Form compiled successfully!")
 
-    # Map form names to actual filenames in your root directory
-    filename_map = {
-        "BEZA.EESSU.F.001 BUILDING PERMIT": "BEZA.EESSU.F.001 BUILDING PERMIT.pdf",
-        "BEZA.EESSU.F.002 MECHANICAL PERMIT": (
-            "BEZA.EESSU.F.002 MECHANICAL PERMIT.pdf"
-        ),
-        "BEZA.EESSU.F.003 ELECTRICAL PERMIT": (
-            "BEZA.EESSU.F.003 ELECTRICAL PERMIT.pdf"
-        ),
-        "BEZA.EESSU.F.004 ELECTRONICS PERMIT": (
-            "BEZA.EESSU.F.004 ELECTRONICS PERMIT.pdf"
-        ),
-        "BEZA.EESSU.F.005 FENCING PERMIT": "BEZA.EESSU.F.005 FENCING PERMIT.pdf",
-        "BEZA.EESSU.F.006 SANITARY AND PLUMBING PERMIT": (
-            "BEZA.EESSU.F.006 SANITARY AND PLUMBING PERMIT.pdf"
-        ),
-        "BEZA.EESSU.F.007 Mechanical Data Sheet": (
-            "BEZA.EESSU.F.007 Mechanical Data Sheet.pdf"
-        ),
-        "BEZA.EESSU.F.008 Electrical Data Sheet": (
-            "BEZA.EESSU.F.008 Electrical Data Sheet.pdf"
-        ),
-        "BEZA.EESSU.F.009 Electronics Data Sheet": (
-            "BEZA.EESSU.F.009 Electronics Data Sheet.pdf"
-        ),
-        "BEZA DEMOLITION PERMIT": "BEZA DEMOLITION PERMIT FORM.pdf",
-        "BEZA SIGN & SIGN STRUCTURE PERMIT": (
-            "BEZA SIGN AND SIGN STRUCTURE PERMIT FORM MERGED.pdf"
-        ),
-        "Excavation & Ground Preparation Permit": (
-            "Application-Form-Excavation-Ground-Preparation-and-Soil-Investigation.pdf"
-        ),
-    }
-
-    target_file = filename_map.get(permit_choice)
     form_payload = {
         "app_no": app_no,
         "permit_no": permit_no,
@@ -246,14 +175,9 @@ if submitted:
 
     if pdf_result:
       st.download_button(
-          label="📥 Download Filled & Printable Official Permit PDF",
+          label="📥 Download Your Filled Application Form",
           data=pdf_result,
           file_name=f"Filled_{permit_choice.replace(' ', '_')}_{app_no}.pdf",
           mime="application/pdf",
           type="primary",
-      )
-    else:
-      st.warning(
-          f"Template file `{target_file}` could not be found in the repository"
-          " root folder. Please verify the exact filename."
       )
