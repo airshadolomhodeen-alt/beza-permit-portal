@@ -1,4 +1,5 @@
 import os
+import pandas as pd
 import streamlit as st
 
 # Page Configuration
@@ -14,7 +15,6 @@ st.markdown(
     <style>
         .main-title {font-size: 22px; font-weight: 700; color: #0F172A; margin-bottom: 0px;}
         .sub-title {font-size: 13px; font-weight: 600; color: #475569; margin-top: 2px;}
-        .header-container {background: #F8FAFC; padding: 15px 20px; border-radius: 8px; border: 1px solid #E2E8F0; margin-bottom: 20px;}
         .section-header {font-size: 15px; font-weight: 600; color: #1E3A8A; margin-top: 10px; margin-bottom: 10px;}
     </style>
 """,
@@ -83,27 +83,33 @@ with st.sidebar:
   if os.path.exists(logo_filename):
     st.image(logo_filename, width=110)
 
-  st.markdown("### 📋 Regulatory Modules")
-  selected_form = st.selectbox(
-      "Select Application / Permit Form", list(filename_map.keys())
+  portal_mode = st.radio(
+      "Portal Navigation", ["Applicant Submission", "BEZA Official Review"]
   )
 
   st.markdown("---")
-  st.markdown("### 📥 Document Center")
-  st.write("Download official blank templates for offline encoding:")
+  if portal_mode == "Applicant Submission":
+    st.markdown("### 📋 Regulatory Modules")
+    selected_form = st.selectbox(
+        "Select Application / Permit Form", list(filename_map.keys())
+    )
 
-  target_file = filename_map.get(selected_form)
-  if target_file and os.path.exists(target_file):
-    with open(target_file, "rb") as pdf_file:
-      st.download_button(
-          label="📄 Download Blank Official PDF",
-          data=pdf_file,
-          file_name=target_file,
-          mime="application/pdf",
-          type="primary",
-      )
-  else:
-    st.warning("Template file not found in repository.")
+    st.markdown("---")
+    st.markdown("### 📥 Document Center")
+    st.write("Download official blank templates for offline encoding:")
+
+    target_file = filename_map.get(selected_form)
+    if target_file and os.path.exists(target_file):
+      with open(target_file, "rb") as pdf_file:
+        st.download_button(
+            label="📄 Download Blank Official PDF",
+            data=pdf_file,
+            file_name=target_file,
+            mime="application/pdf",
+            type="primary",
+        )
+    else:
+      st.warning("Template file not found in repository.")
 
   st.markdown("---")
   st.markdown("### ⚖️ ARTA Compliance")
@@ -113,102 +119,159 @@ with st.sidebar:
   )
 
 
-# --- MAIN PORTAL: SUBMISSION INTERFACE ---
-st.markdown(f"### Active Module: **{selected_form}**")
-st.info(
-    "**Workflow Instructions:** 1. Download the official blank form from the"
-    " sidebar. 2. Accomplish the form and compile required engineering plans"
-    " and specifications. 3. Submit your complete digital package below."
-)
-
-with st.form("technical_submission_form"):
-  st.markdown(
-      '<div class="section-header">1. Project Identification & Applicant'
-      " Metadata</div>",
-      unsafe_allow_html=True,
+# --- PORTAL VIEW 1: APPLICANT SUBMISSION ---
+if portal_mode == "Applicant Submission":
+  st.markdown(f"### Active Module: **{selected_form}**")
+  st.info(
+      "**Workflow Instructions:** 1. Download the official blank form from the"
+      " sidebar. 2. Accomplish the form and compile required engineering plans"
+      " and specifications. 3. Submit your complete digital package below."
   )
 
-  c1, c2, c3 = st.columns(3)
-  app_ref_no = c1.text_input(
-      "Application Reference No.", placeholder="BEZA-2026-XXXX"
-  )
-  proj_category = c2.selectbox(
-      "Project Classification",
-      [
-          "Commercial",
-          "Industrial",
-          "Institutional",
-          "Residential",
-          "Infrastructure",
-      ],
-  )
-  submission_stage = c3.radio(
-      "Submission Type", ["Original Filing", "Resubmission / Compliance"]
-  )
-
-  col_a, col_b = st.columns([2, 1])
-  owner_name = col_a.text_input(
-      "Name of Owner / Applicant (Last Name, First Name, M.I.) *"
-  )
-  tin = col_b.text_input("Taxpayer Identification No. (TIN) *")
-
-  col_c, col_d = st.columns(2)
-  enterprise_name = col_c.text_input(
-      "Registered Enterprise Name (if applicable)"
-  )
-  contact_no = col_d.text_input("Official Contact Number *")
-
-  location = st.text_input(
-      "Exact Location of Construction / Installation (Zone, Municipality) *"
-  )
-
-  st.markdown("---")
-  st.markdown(
-      '<div class="section-header">2. Technical Document Attachments (PDF / CAD'
-      " Packages)</div>",
-      unsafe_allow_html=True,
-  )
-
-  up_col1, up_col2 = st.columns(2)
-  with up_col1:
-    uploaded_application_form = st.file_uploader(
-        "Upload Accomplished & Signed Official Form (PDF) *", type=["pdf"]
-    )
-    uploaded_plans = st.file_uploader(
-        "Upload Signed & Sealed Engineering Plans (PDF) *", type=["pdf"]
+  with st.form("technical_submission_form"):
+    st.markdown(
+        '<div class="section-header">1. Project Identification & Applicant'
+        " Metadata</div>",
+        unsafe_allow_html=True,
     )
 
-  with up_col2:
-    uploaded_computations = st.file_uploader(
-        "Upload Structural / Technical Computations (PDF)", type=["pdf"]
+    c1, c2, c3 = st.columns(3)
+    app_ref_no = c1.text_input(
+        "Application Reference No.", placeholder="BEZA-2026-XXXX"
     )
-    uploaded_clearances = st.file_uploader(
-        "Upload Environmental / Zone Clearances & Supporting Docs (PDF/ZIP)",
-        type=["pdf", "zip"],
+    proj_category = c2.selectbox(
+        "Project Classification",
+        [
+            "Commercial",
+            "Industrial",
+            "Institutional",
+            "Residential",
+            "Infrastructure",
+        ],
+    )
+    submission_stage = c3.radio(
+        "Submission Type", ["Original Filing", "Resubmission / Compliance"]
     )
 
-  st.markdown("---")
-  submitted = st.form_submit_button(
-      "🔒 Securely Transmit Application Package to BEZA", type="primary"
+    col_a, col_b = st.columns([2, 1])
+    owner_name = col_a.text_input(
+        "Name of Owner / Applicant (Last Name, First Name, M.I.) *"
+    )
+    tin = col_b.text_input("Taxpayer Identification No. (TIN) *")
+
+    col_c, col_d = st.columns(2)
+    enterprise_name = col_c.text_input(
+        "Registered Enterprise Name (if applicable)"
+    )
+    contact_no = col_d.text_input("Official Contact Number *")
+
+    location = st.text_input(
+        "Exact Location of Construction / Installation (Zone, Municipality) *"
+    )
+
+    st.markdown("---")
+    st.markdown(
+        '<div class="section-header">2. Technical Document Attachments (PDF / CAD'
+        " Packages)</div>",
+        unsafe_allow_html=True,
+    )
+
+    up_col1, up_col2 = st.columns(2)
+    with up_col1:
+      uploaded_application_form = st.file_uploader(
+          "Upload Accomplished & Signed Official Form (PDF) *", type=["pdf"]
+      )
+      uploaded_plans = st.file_uploader(
+          "Upload Signed & Sealed Engineering Plans (PDF) *", type=["pdf"]
+      )
+
+    with up_col2:
+      uploaded_computations = st.file_uploader(
+          "Upload Structural / Technical Computations (PDF)", type=["pdf"]
+      )
+      uploaded_clearances = st.file_uploader(
+          "Upload Environmental / Zone Clearances & Supporting Docs (PDF/ZIP)",
+          type=["pdf", "zip"],
+      )
+
+    st.markdown("---")
+    submitted = st.form_submit_button(
+        "🔒 Securely Transmit Application Package to BEZA", type="primary"
+    )
+
+  if submitted:
+    if (
+        not owner_name
+        or not tin
+        or not location
+        or not uploaded_application_form
+        or not uploaded_plans
+    ):
+      st.error(
+          "⚠️ Incomplete Submission: Please ensure all mandatory fields (*)"
+          " marked with an asterisk and required technical documents are"
+          " attached."
+      )
+    else:
+      # Save submission record to CSV for BEZA evaluators
+      sub_data = {
+          "Timestamp": [pd.Timestamp.now()],
+          "Module": [selected_form],
+          "App_Ref_No": [app_ref_no or "BEZA-2026-AUTO"],
+          "Category": [proj_category],
+          "Owner_Name": [owner_name],
+          "TIN": [tin],
+          "Enterprise": [enterprise_name],
+          "Contact": [contact_no],
+          "Location": [location],
+          "Form_File": [uploaded_application_form.name],
+          "Plans_File": [uploaded_plans.name],
+      }
+      df_new = pd.DataFrame(sub_data)
+      csv_file = "submissions.csv"
+
+      if os.path.exists(csv_file):
+        df_existing = pd.read_csv(csv_file)
+        df_combined = pd.concat([df_existing, df_new], ignore_index=True)
+      else:
+        df_combined = df_new
+
+      df_combined.to_csv(csv_file, index=False)
+
+      st.success(
+          "✅ **Transmission Successful:** Your technical documentation"
+          " package has been logged into the BEZA regulatory gateway for"
+          " initial review by the Office of the Building Official."
+      )
+      st.balloons()
+
+# --- PORTAL VIEW 2: BEZA OFFICIAL REVIEW DASHBOARD ---
+else:
+  st.markdown("### 🛡️ BEZA Official Evaluation & Review Dashboard")
+  st.write(
+      "Review incoming applicant submissions, track metadata, and export"
+      " compliance logs for technical auditing."
   )
 
-if submitted:
-  if (
-      not owner_name
-      or not tin
-      or not location
-      or not uploaded_application_form
-      or not uploaded_plans
-  ):
-    st.error(
-        "⚠️ Incomplete Submission: Please ensure all mandatory fields (*)"
-        " marked with an asterisk and required technical documents are"
-        " attached."
+  csv_file = "submissions.csv"
+  if os.path.exists(csv_file):
+    df_submissions = pd.read_csv(csv_file)
+    st.markdown(
+        f"**Total Received Applications:** {len(df_submissions)}"
+    )
+    st.dataframe(df_submissions, use_container_width=True)
+
+    # Export button for officials
+    csv_bytes = df_submissions.to_csv(index=False).encode("utf-8")
+    st.download_button(
+        label="📥 Export Submission Audit Log (CSV)",
+        data=csv_bytes,
+        file_name="BEZA_Audit_Logs.csv",
+        mime="text/csv",
+        type="primary",
     )
   else:
-    st.success(
-        "✅ **Transmission Successful:** Your technical documentation package"
-        " has been logged into the BEZA regulatory gateway for initial review"
-        " by the Office of the Building Official."
+    st.info(
+        "No application submissions recorded yet. Once applicants transmit"
+        " their packages, they will appear securely here."
     )
-    st.balloons()
