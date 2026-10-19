@@ -37,7 +37,8 @@ with col_text:
       unsafe_allow_html=True,
   )
   st.markdown(
-      '<div class="sub-title">Office of the Building Official — Electronic Permitting & E-Services Portal (RA 11032 ARTA Compliant)</div>',
+      '<div class="sub-title">Office of the Building Official — Electronic'
+      " Permitting & E-Services Portal (RA 11032 ARTA Compliant)</div>",
       unsafe_allow_html=True,
   )
 
@@ -46,17 +47,35 @@ st.markdown("---")
 # Map form names to actual filenames in your root directory
 filename_map = {
     "BEZA.EESSU.F.001 BUILDING PERMIT": "BEZA.EESSU.F.001 BUILDING PERMIT.pdf",
-    "BEZA.EESSU.F.002 MECHANICAL PERMIT": "BEZA.EESSU.F.002 MECHANICAL PERMIT.pdf",
-    "BEZA.EESSU.F.003 ELECTRICAL PERMIT": "BEZA.EESSU.F.003 ELECTRICAL PERMIT.pdf",
-    "BEZA.EESSU.F.004 ELECTRONICS PERMIT": "BEZA.EESSU.F.004 ELECTRONICS PERMIT.pdf",
+    "BEZA.EESSU.F.002 MECHANICAL PERMIT": (
+        "BEZA.EESSU.F.002 MECHANICAL PERMIT.pdf"
+    ),
+    "BEZA.EESSU.F.003 ELECTRICAL PERMIT": (
+        "BEZA.EESSU.F.003 ELECTRICAL PERMIT.pdf"
+    ),
+    "BEZA.EESSU.F.004 ELECTRONICS PERMIT": (
+        "BEZA.EESSU.F.004 ELECTRONICS PERMIT.pdf"
+    ),
     "BEZA.EESSU.F.005 FENCING PERMIT": "BEZA.EESSU.F.005 FENCING PERMIT.pdf",
-    "BEZA.EESSU.F.006 SANITARY AND PLUMBING PERMIT": "BEZA.EESSU.F.006 SANITARY AND PLUMBING PERMIT.pdf",
-    "BEZA.EESSU.F.007 Mechanical Data Sheet": "BEZA.EESSU.F.007 Mechanical Data Sheet.pdf",
-    "BEZA.EESSU.F.008 Electrical Data Sheet": "BEZA.EESSU.F.008 Electrical Data Sheet.pdf",
-    "BEZA.EESSU.F.009 Electronics Data Sheet": "BEZA.EESSU.F.009 Electronics Data Sheet.pdf",
+    "BEZA.EESSU.F.006 SANITARY AND PLUMBING PERMIT": (
+        "BEZA.EESSU.F.006 SANITARY AND PLUMBING PERMIT.pdf"
+    ),
+    "BEZA.EESSU.F.007 Mechanical Data Sheet": (
+        "BEZA.EESSU.F.007 Mechanical Data Sheet.pdf"
+    ),
+    "BEZA.EESSU.F.008 Electrical Data Sheet": (
+        "BEZA.EESSU.F.008 Electrical Data Sheet.pdf"
+    ),
+    "BEZA.EESSU.F.009 Electronics Data Sheet": (
+        "BEZA.EESSU.F.009 Electronics Data Sheet.pdf"
+    ),
     "BEZA DEMOLITION PERMIT": "BEZA DEMOLITION PERMIT FORM.pdf",
-    "BEZA SIGN & SIGN STRUCTURE PERMIT": "BEZA SIGN AND SIGN STRUCTURE PERMIT FORM MERGED.pdf",
-    "Excavation & Ground Preparation Permit": "Application-Form-Excavation-Ground-Preparation-and-Soil-Investigation.pdf",
+    "BEZA SIGN & SIGN STRUCTURE PERMIT": (
+        "BEZA SIGN AND SIGN STRUCTURE PERMIT FORM MERGED.pdf"
+    ),
+    "Excavation & Ground Preparation Permit": (
+        "Application-Form-Excavation-Ground-Preparation-and-Soil-Investigation.pdf"
+    ),
 }
 
 # --- SIDEBAR NAVIGATION ---
@@ -98,13 +117,14 @@ with st.sidebar:
 st.markdown(f"### Active Module: **{selected_form}**")
 st.info(
     "**Workflow Instructions:** 1. Download the official blank form from the"
-    " sidebar[cite: 9]. 2. Accomplish the form and compile required engineering"
-    " plans and specifications. 3. Submit your complete digital package below."
+    " sidebar. 2. Accomplish the form and compile required engineering plans"
+    " and specifications. 3. Submit your complete digital package below."
 )
 
 with st.form("technical_submission_form"):
   st.markdown(
-      '<div class="section-header">1. Project Identification & Applicant Metadata</div>',
+      '<div class="section-header">1. Project Identification & Applicant'
+      " Metadata</div>",
       unsafe_allow_html=True,
   )
 
@@ -114,7 +134,13 @@ with st.form("technical_submission_form"):
   )
   proj_category = c2.selectbox(
       "Project Classification",
-      ["Commercial", "Industrial", "Institutional", "Residential", "Infrastructure"],
+      [
+          "Commercial",
+          "Industrial",
+          "Institutional",
+          "Residential",
+          "Infrastructure",
+      ],
   )
   submission_stage = c3.radio(
       "Submission Type", ["Original Filing", "Resubmission / Compliance"]
@@ -127,7 +153,9 @@ with st.form("technical_submission_form"):
   tin = col_b.text_input("Taxpayer Identification No. (TIN) *")
 
   col_c, col_d = st.columns(2)
-  enterprise_name = col_c.text_input("Registered Enterprise Name (if applicable)")
+  enterprise_name = col_c.text_input(
+      "Registered Enterprise Name (if applicable)"
+  )
   contact_no = col_d.text_input("Official Contact Number *")
 
   location = st.text_input(
@@ -136,7 +164,8 @@ with st.form("technical_submission_form"):
 
   st.markdown("---")
   st.markdown(
-      '<div class="section-header">2. Technical Document Attachments (PDF / CAD Packages)</div>',
+      '<div class="section-header">2. Technical Document Attachments (PDF / CAD'
+      " Packages)</div>",
       unsafe_allow_html=True,
   )
 
