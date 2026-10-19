@@ -83,6 +83,10 @@ filename_map = {
     ),
 }
 
+# Initialize session state variables for authentication persistence
+if "admin_authenticated" not in st.session_state:
+  st.session_state.admin_authenticated = False
+
 # --- SIDEBAR NAVIGATION & SECURE ADMIN GATEWAY ---
 with st.sidebar:
   if os.path.exists(logo_filename):
@@ -133,16 +137,23 @@ with st.sidebar:
 
   st.markdown("---")
   st.markdown("### 🔒 BEZA Official Gateway")
-  admin_toggle = st.checkbox("Access Official Review Panel")
 
-  show_admin = False
-  if admin_toggle:
-    admin_pin = st.text_input("Enter Official Access PIN", type="password")
-    if admin_pin == "BEZA2026":
-      show_admin = True
-      st.success("Access Granted.")
-    elif admin_pin != "":
-      st.error("Invalid PIN.")
+  # If already authenticated, show logout option; otherwise show PIN entry
+  if st.session_state.admin_authenticated:
+    st.success("Admin Session Active")
+    if st.button("🔒 Logout from Admin"):
+      st.session_state.admin_authenticated = False
+      st.rerun()
+  else:
+    admin_toggle = st.checkbox("Access Official Review Panel")
+    if admin_toggle:
+      admin_pin = st.text_input("Enter Official Access PIN", type="password")
+      if admin_pin == "BEZA2026":
+        st.session_state.admin_authenticated = True
+        st.success("Access Granted.")
+        st.rerun()
+      elif admin_pin != "":
+        st.error("Invalid PIN.")
 
   st.markdown("---")
   st.markdown("### ⚖️ ARTA Compliance")
@@ -153,7 +164,7 @@ with st.sidebar:
 
 
 # --- PORTAL VIEW 2: SECURE BEZA OFFICIAL REVIEW & FILE INSPECTION ---
-if show_admin:
+if st.session_state.admin_authenticated:
   st.markdown("### 🛡️ BEZA Official Evaluation & Review Dashboard")
   st.write(
       "Review incoming applicant submissions, inspect/download uploaded files,"
@@ -397,7 +408,6 @@ else:
     else:
       auto_ref_no = f"BEZA-{pd.Timestamp.now().strftime('%Y%m%d%H%M%S')}"
 
-      # Save physical uploaded files securely into the 'uploads/' folder
       form_filename = f"{auto_ref_no}_form_{uploaded_application_form.name}"
       form_path = os.path.join(UPLOAD_DIR, form_filename)
       with open(form_path, "wb") as f:
@@ -447,6 +457,6 @@ else:
           f"🏗️ **Declared Area:** {floor_area:,.2f} sq. m. | 💰 **Estimated"
           f" Cost:** ₱{estimated_cost:,.2f}\n\n"
           "*(Please save your tracking reference number to check your status"
-          " anytime via the sidebar sidebar lookup tool.)*"
+          " anytime via the sidebar lookup tool.)*"
       )
       st.balloons()
