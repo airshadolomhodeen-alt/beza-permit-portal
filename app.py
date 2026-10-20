@@ -2,6 +2,7 @@
 Bangsamoro Economic Zone Authority (BEZA) - Electronic Permitting & E-Services Portal
 Office of the Building Official | RA 11032 ARTA Compliant
 Cloudflare R2 Storage & httpSMS Real-Time Notification Gateway Integration
+WrapPixel Professional Design System & High-Contrast UI
 """
 
 from datetime import datetime
@@ -109,99 +110,115 @@ st.set_page_config(
 )
 
 # ==========================================
-# 2. ADVANCED ENTERPRISE CSS INJECTION
+# 2. WRAPPIXEL-INSPIRED PROFESSIONAL CSS
 # ==========================================
 st.markdown(
     """
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
         html, body, [class*="css"] {
-            font-family: 'Inter', sans-serif;
-            color: #1E293B;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: #0F172A !important;
         }
 
         .main .block-container {
-            padding-top: 1.5rem;
-            padding-bottom: 3rem;
-            max-width: 1280px;
+            padding-top: 2rem;
+            padding-bottom: 4rem;
+            max-width: 1320px;
         }
 
+        /* WrapPixel Executive Hero Banner */
         .hero-banner {
             background: linear-gradient(135deg, #0A2540 0%, #006A35 100%);
-            padding: 24px 30px;
+            padding: 28px 36px;
             border-radius: 12px;
-            box-shadow: 0 10px 25px -5px rgba(0, 106, 53, 0.25);
-            color: #FFFFFF;
+            box-shadow: 0 10px 30px -5px rgba(0, 106, 53, 0.2);
+            color: #FFFFFF !important;
             display: flex;
             align-items: center;
-            gap: 20px;
-            margin-bottom: 25px;
+            gap: 24px;
+            margin-bottom: 30px;
             border-bottom: 4px solid #FFC72C;
         }
         .hero-title {
-            font-size: 24px;
+            font-size: 26px;
             font-weight: 800;
             letter-spacing: -0.5px;
             margin: 0;
             color: #FFFFFF !important;
         }
         .hero-subtitle {
-            font-size: 13px;
-            color: #E2E8F0;
-            margin-top: 4px;
+            font-size: 14px;
+            color: #E2E8F0 !important;
+            margin-top: 6px;
             font-weight: 500;
         }
         .arta-badge {
             background: rgba(255, 255, 255, 0.15);
-            padding: 4px 10px;
+            padding: 5px 12px;
             border-radius: 20px;
             font-size: 11px;
-            font-weight: 600;
-            border: 1px solid rgba(255, 255, 255, 0.25);
+            font-weight: 700;
+            border: 1px solid rgba(255, 255, 255, 0.3);
             display: inline-block;
-            margin-top: 8px;
-            color: #FFC72C;
+            margin-top: 10px;
+            color: #FFC72C !important;
+            letter-spacing: 0.3px;
         }
 
+        /* Module & Section Cards */
         .module-header {
-            background: #F1F5F9;
-            border-left: 5px solid #006A35;
-            padding: 12px 18px;
+            background: #F8FAFC;
+            border-left: 6px solid #006A35;
+            border-top: 1px solid #E2E8F0;
+            border-right: 1px solid #E2E8F0;
+            border-bottom: 1px solid #E2E8F0;
+            padding: 14px 20px;
             border-radius: 0 8px 8px 0;
             font-size: 18px;
             font-weight: 700;
-            color: #0F172A;
-            margin-bottom: 15px;
+            color: #0F172A !important;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
         }
 
         .info-card {
-            background-color: #EFF6FF;
-            border: 1px solid #BFDBFE;
+            background-color: #F0FDF4;
+            border: 1px solid #BBF7D0;
             border-radius: 8px;
-            padding: 14px 18px;
-            color: #1E40AF;
+            padding: 16px 20px;
+            color: #14532D !important;
             font-size: 13px;
-            line-height: 1.5;
-            margin-bottom: 20px;
+            line-height: 1.6;
+            margin-bottom: 24px;
         }
 
+        /* Form Container Styling */
         div[data-testid="stForm"] {
             background: #FFFFFF;
             border: 1px solid #E2E8F0;
             border-radius: 12px;
-            padding: 25px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+            padding: 30px;
+            box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
         }
 
         .section-header {
-            font-size: 15px;
-            font-weight: 700;
-            color: #0A2540;
-            margin-top: 10px;
-            margin-bottom: 15px;
+            font-size: 14px;
+            font-weight: 800;
+            color: #0A2540 !important;
+            margin-top: 15px;
+            margin-bottom: 18px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.8px;
+            border-bottom: 2px solid #F1F5F9;
+            padding-bottom: 8px;
+        }
+
+        /* High-Contrast Label & Text Fixes for Mobile/External Displays */
+        label, .stMultiSelect span, .stSelectbox label, .stTextInput label, .stNumberInput label, .stFileUploader label, p, span {
+            color: #0F172A !important;
+            font-weight: 600 !important;
         }
 
         section[data-testid="stSidebar"] {
@@ -212,45 +229,47 @@ st.markdown(
         div.stButton > button[kind="primary"], .stFormSubmitButton > button {
             background: linear-gradient(135deg, #006A35 0%, #004D26 100%) !important;
             color: white !important;
-            font-weight: 600 !important;
-            border-radius: 6px !important;
+            font-weight: 700 !important;
+            border-radius: 8px !important;
             border: none !important;
-            padding: 10px 24px !important;
-            box-shadow: 0 4px 10px rgba(0, 106, 53, 0.2) !important;
+            padding: 12px 24px !important;
+            box-shadow: 0 4px 12px rgba(0, 106, 53, 0.25) !important;
             width: 100%;
         }
 
+        /* Metrics */
         .metric-card {
             background: #FFFFFF;
             border: 1px solid #E2E8F0;
             border-top: 4px solid #006A35;
-            padding: 18px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
             text-align: center;
         }
         .metric-val {
-            font-size: 26px;
+            font-size: 28px;
             font-weight: 800;
-            color: #0A2540;
+            color: #0A2540 !important;
         }
         .metric-lbl {
             font-size: 12px;
-            color: #64748B;
-            font-weight: 600;
+            color: #64748B !important;
+            font-weight: 700;
             text-transform: uppercase;
+            margin-top: 4px;
         }
 
         .badge {
-            padding: 4px 10px;
+            padding: 5px 12px;
             border-radius: 12px;
             font-size: 11px;
             font-weight: 700;
             display: inline-block;
         }
-        .badge-eval { background: #FEF3C7; color: #92400E; border: 1px solid #FCD34D; }
-        .badge-approved { background: #D1FAE5; color: #065F46; border: 1px solid #6EE7B7; }
-        .badge-pending { background: #FEE2E2; color: #991B1B; border: 1px solid #FCA5A5; }
+        .badge-eval { background: #FEF3C7; color: #92400E !important; border: 1px solid #FCD34D; }
+        .badge-approved { background: #D1FAE5; color: #065F46 !important; border: 1px solid #6EE7B7; }
+        .badge-pending { background: #FEE2E2; color: #991B1B !important; border: 1px solid #FCA5A5; }
 
         #MainMenu {visibility: hidden;}
         footer {visibility: hidden;}
@@ -434,16 +453,16 @@ def render_sidebar() -> str:
 
           st.markdown(
               f"""
-              <div style="background:#FFFFFF; border:1px solid #E2E8F0; padding:12px; border-radius:8px; margin-top:8px;">
-                  <div style="font-size:11px; color:#64748B;">Submitted At:</div>
+              <div style="background:#FFFFFF; border:1px solid #E2E8F0; padding:14px; border-radius:8px; margin-top:8px; box-shadow:0 2px 6px rgba(0,0,0,0.02);">
+                  <div style="font-size:11px; color:#64748B; font-weight:700;">Submitted At:</div>
                   <div style="font-size:12px; font-weight:700; color:#0F172A; margin-bottom:6px;">{timestamp_filled}</div>
-                  <div style="font-size:11px; color:#64748B;">Overall Status:</div>
+                  <div style="font-size:11px; color:#64748B; font-weight:700;">Overall Status:</div>
                   <div style="margin-top:2px; margin-bottom:6px;"><span class="badge {badge_class}">{status}</span></div>
-                  <div style="font-size:11px; color:#64748B;">📍 Current Agency Location:</div>
-                  <div style="font-size:12px; font-weight:600; color:#0A2540; margin-top:2px;">{current_stage}</div>
+                  <div style="font-size:11px; color:#64748B; font-weight:700;">📍 Current Agency Location:</div>
+                  <div style="font-size:12px; font-weight:700; color:#0A2540; margin-top:2px;">{current_stage}</div>
                   <hr style="margin:8px 0; border:none; border-top:1px solid #F1F5F9;">
-                  <div style="font-size:12px;"><b>Owner:</b> {row['Owner_Name']}</div>
-                  <div style="font-size:12px;"><b>Module:</b> {row['Module']}</div>
+                  <div style="font-size:12px; color:#0F172A;"><b>Owner:</b> {row['Owner_Name']}</div>
+                  <div style="font-size:12px; color:#0F172A;"><b>Module:</b> {row['Module']}</div>
               </div>
               """,
               unsafe_allow_html=True,
@@ -580,12 +599,12 @@ def render_admin_dashboard() -> None:
   with col_info1:
     st.markdown(
         f"""
-        <div style="background:#F8FAFC; border:1px solid #E2E8F0; padding:15px; border-radius:8px;">
-            <div style="font-size:13px; margin-bottom:4px;"><b>Active Timestamp:</b> <code>{current_row['Timestamp']}</code></div>
-            <div style="font-size:13px; margin-bottom:4px;"><b>Applicant Name:</b> {current_row['Owner_Name']}</div>
-            <div style="font-size:13px; margin-bottom:4px;"><b>Tracking Ref:</b> <code>{current_row['App_Ref_No']}</code></div>
-            <div style="font-size:13px; margin-bottom:4px;"><b>Contact No:</b> {current_row['Contact_No']}</div>
-            <div style="font-size:13px;"><b>Module Category:</b> {current_row['Module']}</div>
+        <div style="background:#FFFFFF; border:1px solid #E2E8F0; padding:18px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.02);">
+            <div style="font-size:13px; color:#0F172A; margin-bottom:6px;"><b>Active Timestamp:</b> <code>{current_row['Timestamp']}</code></div>
+            <div style="font-size:13px; color:#0F172A; margin-bottom:6px;"><b>Applicant Name:</b> {current_row['Owner_Name']}</div>
+            <div style="font-size:13px; color:#0F172A; margin-bottom:6px;"><b>Tracking Ref:</b> <code>{current_row['App_Ref_No']}</code></div>
+            <div style="font-size:13px; color:#0F172A; margin-bottom:6px;"><b>Contact No:</b> {current_row['Contact_No']}</div>
+            <div style="font-size:13px; color:#0F172A;"><b>Module Category:</b> {current_row['Module']}</div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -658,8 +677,8 @@ def render_admin_dashboard() -> None:
       if form_url:
         st.markdown(
             f'<a href="{form_url}" target="_blank"><button'
-            ' style="background:#006A35; color:white; border:none; padding:10px'
-            ' 20px; border-radius:6px; font-weight:600; cursor:pointer;">📥'
+            ' style="background:#006A35; color:white; border:none; padding:12px'
+            ' 20px; border-radius:8px; font-weight:700; cursor:pointer; width:100%;">📥'
             " Download Application Form from Cloud</button></a>",
             unsafe_allow_html=True,
         )
@@ -673,8 +692,8 @@ def render_admin_dashboard() -> None:
       if plans_url:
         st.markdown(
             f'<a href="{plans_url}" target="_blank"><button'
-            ' style="background:#0A2540; color:white; border:none; padding:10px'
-            ' 20px; border-radius:6px; font-weight:600; cursor:pointer;">📥'
+            ' style="background:#0A2540; color:white; border:none; padding:12px'
+            ' 20px; border-radius:8px; font-weight:700; cursor:pointer; width:100%;">📥'
             " Download Engineering Plans from Cloud</button></a>",
             unsafe_allow_html=True,
         )
