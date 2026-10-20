@@ -81,7 +81,7 @@ REQUIRED_COLUMNS: List[str] = [
 
 FILENAME_MAP: Dict[str, str] = {
     "BUILDING PERMIT": "BEZA.EESSU.F.001 BUILDING PERMIT.pdf",
-    "MECHANICAL PERMIT": (
+    "BEZA.EESSU.F.002 MECHANICAL PERMIT": (
         "BEZA.EESSU.F.002 MECHANICAL PERMIT.pdf"
     ),
     "ELECTRICAL PERMIT": "BEZA.EESSU.F.003 ELECTRICAL PERMIT.pdf",
@@ -640,7 +640,7 @@ def render_admin_dashboard() -> None:
 
     current_row = edited_df.loc[selected_idx]
 
-    # --- Sub-navigation / Action Tabs like Screenshot ---
+    # --- Sub-navigation / Action Tabs ---
     tab_inspect, tab_print = st.tabs(
         ["📝 Routing & Attachments", "🖨️ Printable Receiving Slip"]
     )
@@ -772,9 +772,9 @@ def render_admin_dashboard() -> None:
 
       slip_html = f"""
       <div class="printable-slip-card">
-          <div style="text-align: center; font-weight: 800; font-size: 14px; letter-spacing: 0.5px;">BANGSAMORO ECONOMIC ZONE AUTHORITY</div>
+          <div style="text-align: center; font-weight: 800; font-size: 14px; letter-spacing: 0.5px; color: #0F172A;">BANGSAMORO ECONOMIC ZONE AUTHORITY</div>
           <div style="text-align: center; font-size: 11px; font-weight: 700; color: #006A35; margin-bottom: 12px;">OFFICE OF THE BUILDING OFFICIAL — RECORDS & INTAKE SECTION</div>
-          <div style="text-align: center; font-weight: 700; font-size: 13px; text-decoration: underline; margin-bottom: 15px;">OFFICIAL APPLICATION RECEIVING & CLAIM SLIP</div>
+          <div style="text-align: center; font-weight: 700; font-size: 13px; text-decoration: underline; margin-bottom: 15px; color: #0F172A;">OFFICIAL APPLICATION RECEIVING & CLAIM SLIP</div>
           
           <table style="width: 100%; font-size: 12px; margin-bottom: 15px; border-collapse: collapse;">
               <tr>
@@ -787,27 +787,27 @@ def render_admin_dashboard() -> None:
               </tr>
               <tr>
                   <td style="padding: 4px 0; color: #64748B;"><b>Module / Permit:</b></td>
-                  <td style="padding: 4px 0; font-weight: 600;">{current_row['Module']}</td>
+                  <td style="padding: 4px 0; font-weight: 600; color: #0F172A;">{current_row['Module']}</td>
               </tr>
               <tr>
                   <td style="padding: 4px 0; color: #64748B;"><b>Location:</b></td>
-                  <td style="padding: 4px 0; font-weight: 600;">{current_row['Location']}</td>
+                  <td style="padding: 4px 0; font-weight: 600; color: #0F172A;">{current_row['Location']}</td>
               </tr>
               <tr>
                   <td style="padding: 4px 0; color: #64748B;"><b>Floor Area / Cost:</b></td>
-                  <td style="padding: 4px 0; font-weight: 600;">{current_row['Floor_Area_Sqm']} sq.m. | ₱{current_row['Estimated_Cost']:,.2f}</td>
+                  <td style="padding: 4px 0; font-weight: 600; color: #0F172A;">{current_row['Floor_Area_Sqm']} sq.m. | ₱{current_row['Estimated_Cost']:,.2f}</td>
               </tr>
               <tr>
                   <td style="padding: 4px 0; color: #64748B;"><b>Date Filed:</b></td>
-                  <td style="padding: 4px 0; font-weight: 600;">{current_row['Timestamp']}</td>
+                  <td style="padding: 4px 0; font-weight: 600; color: #0F172A;">{current_row['Timestamp']}</td>
               </tr>
           </table>
           
           <hr style="border: none; border-top: 1px dashed #CBD5E1; margin: 12px 0;">
           
-          <div style="font-size: 11px; margin-bottom: 20px;">
+          <div style="font-size: 11px; margin-bottom: 20px; color: #0F172A;">
               <b>Received By (Records Officer):</b><br>
-              <span style="font-size: 12px; font-weight: 700;">BEZA OBO Records & Intake Desk</span>
+              <span style="font-size: 12px; font-weight: 700; color: #006A35;">BEZA OBO Records & Intake Desk</span>
           </div>
           
           <div style="font-size: 10px; color: #64748B; font-style: italic; line-height: 1.4;">
@@ -815,6 +815,7 @@ def render_admin_dashboard() -> None:
           </div>
       </div>
       """
+      # FIX: Added unsafe_allow_html=True so it renders cleanly instead of showing raw code tags
       st.markdown(slip_html, unsafe_allow_html=True)
       st.markdown("<br>", unsafe_allow_html=True)
       
