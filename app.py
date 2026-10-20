@@ -1,7 +1,7 @@
 """
 Bangsamoro Economic Zone Authority (BEZA) - Electronic Permitting & E-Services Portal
 Office of the Building Official | RA 11032 ARTA Compliant
-One-Stop Shop Inter-Agency Tracking
+Cloudflare R2 Object Storage Integration & One-Stop Shop Inter-Agency Tracking
 """
 
 from datetime import datetime
@@ -27,11 +27,11 @@ R2_ENDPOINT_URL: str = st.secrets.get(
     "https://2859e7a87dd0372ba85ff9d2df8e22c8.r2.cloudflarestorage.com",
 )
 R2_ACCESS_KEY_ID: str = st.secrets.get(
-    "R2_ACCESS_KEY_ID", "097eb8d93c2616480e6dc340c3278dc1"
+    "R2_ACCESS_KEY_ID", "ce61aadbcb4f8c3be0a35c14b1b69ece"
 )
 R2_SECRET_ACCESS_KEY: str = st.secrets.get(
     "R2_SECRET_ACCESS_KEY",
-    "dc41ed19d96f41dc3fa4d806e6cb85c97beb0f39430f93553c7ca3745a24d37",
+    "0c8b60d8bf0a4def6ed9d063fdfec0680c9b51235b042558c7634c08395177bb",
 )
 
 AGENCY_STAGES: List[str] = [
