@@ -1,7 +1,7 @@
 """
 Bangsamoro Economic Zone Authority (BEZA) - Electronic Permitting & E-Services Portal
 Office of the Building Official | RA 11032 ARTA Compliant
-Cloudflare R2 Object Storage Integration & One-Stop Shop Inter-Agency Tracking
+Cloudflare R2 Storage & httpSMS Real-Time Notification Gateway Integration
 """
 
 from datetime import datetime
@@ -12,6 +12,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import boto3
 from botocore.exceptions import ClientError
 import pandas as pd
+import requests
 import streamlit as st
 
 # ==========================================
@@ -32,6 +33,15 @@ R2_ACCESS_KEY_ID: str = st.secrets.get(
 R2_SECRET_ACCESS_KEY: str = st.secrets.get(
     "R2_SECRET_ACCESS_KEY",
     "0c8b60d8bf0a4def6ed9d063fdfec0680c9b51235b042558c7634c08395177bb",
+)
+
+# httpSMS Gateway Configuration
+HTTPSMS_API_KEY: str = st.secrets.get(
+    "HTTPSMS_API_KEY",
+    "pk_RM08tumlmQrM-x1ESRcuM6iIZB3sn8luzH4ZP47DNl8gCNkGOtA7mmZkI--6miSb",
+)
+HTTPSMS_SENDER_PHONE: str = st.secrets.get(
+    "HTTPSMS_SENDER_PHONE", "+639293367787"
 )
 
 AGENCY_STAGES: List[str] = [
@@ -251,10 +261,9 @@ st.markdown(
 
 
 # ==========================================
-# 3. CLOUDFLARE R2 & STORAGE UTILITIES
+# 3. UTILITIES & HTTPSMS GATEWAY
 # ==========================================
 def get_r2_client():
-  """Initializes and returns the boto3 client for Cloudflare R2."""
   return boto3.client(
       "s3",
       endpoint_url=R2_ENDPOINT_URL,
@@ -264,7 +273,6 @@ def get_r2_client():
 
 
 def upload_file_to_r2(file_obj, object_key: str) -> bool:
-  """Uploads a file-like object directly to Cloudflare R2."""
   try:
     s3 = get_r2_client()
     s3.upload_fileobj(file_obj, BUCKET_NAME, object_key)
@@ -275,7 +283,6 @@ def upload_file_to_r2(file_obj, object_key: str) -> bool:
 
 
 def get_r2_download_link(object_key: str, expiration: int = 3600) -> Optional[str]:
-  """Generates a secure presigned URL for downloading files from R2."""
   try:
     s3 = get_r2_client()
     url = s3.generate_presigned_url(
@@ -289,8 +296,28 @@ def get_r2_download_link(object_key: str, expiration: int = 3600) -> Optional[st
     return None
 
 
+def send_sms_notification(to_phone: str, message: str) -> bool:
+  """Sends an SMS notification via httpsms.com API gateway."""
+  if not HTTPSMS_API_KEY or not HTTPSMS_SENDER_PHONE:
+    return False
+
+  url = "https://api.httpsms.com/v1/messages/send"
+  headers = {
+      "x-api-key": HTTPSMS_API_KEY,
+      "Accept": "application/json",
+      "Content-Type": "application/json",
+  }
+  payload = {"content": message, "from": HTTPSMS_SENDER_PHONE, "to": to_phone}
+
+  try:
+    response = requests.post(url, json=payload, headers=headers, timeout=10)
+    return response.status_code in [200, 201]
+  except Exception as e:
+    st.warning(f"⚠️ SMS Gateway Warning: {e}")
+    return False
+
+
 def sanitize_filename(filename: str) -> str:
-  """Sanitizes uploaded filenames to prevent path traversal."""
   if not filename:
     return "unnamed_attachment.pdf"
   base_name = os.path.basename(filename)
@@ -309,7 +336,6 @@ def verify_admin_pin(entered_pin: str) -> bool:
 
 
 def load_submissions(csv_path: str) -> pd.DataFrame:
-  """Loads submissions CSV with schema validation."""
   if not os.path.exists(csv_path):
     return pd.DataFrame(columns=REQUIRED_COLUMNS)
 
@@ -364,7 +390,7 @@ def render_header() -> None:
           <div>
               <div class="hero-title">BANGSAMORO ECONOMIC ZONE AUTHORITY</div>
               <div class="hero-subtitle">Office of the Building Official — One-Stop Shop Cloud Permitting Portal</div>
-              <div class="arta-badge">⚡ RA 11032 ARTA Compliant • Cloudflare R2 Cloud Storage Active</div>
+              <div class="arta-badge">⚡ RA 11032 ARTA Compliant • Cloudflare R2 & httpSMS Active</div>
           </div>
       </div>
       """,
@@ -409,7 +435,7 @@ def render_sidebar() -> str:
           st.markdown(
               f"""
               <div style="background:#FFFFFF; border:1px solid #E2E8F0; padding:12px; border-radius:8px; margin-top:8px;">
-                  <div style="font-size:11px; color:#64748B;">Submitted At (Active Time):</div>
+                  <div style="font-size:11px; color:#64748B;">Submitted At:</div>
                   <div style="font-size:12px; font-weight:700; color:#0F172A; margin-bottom:6px;">{timestamp_filled}</div>
                   <div style="font-size:11px; color:#64748B;">Overall Status:</div>
                   <div style="margin-top:2px; margin-bottom:6px;"><span class="badge {badge_class}">{status}</span></div>
@@ -464,10 +490,7 @@ def render_sidebar() -> str:
             st.error("Invalid security PIN.")
 
     st.markdown("---")
-    st.caption(
-        "BEZA Cloud Portal • Powered by Cloudflare R2 & Streamlit enterprise"
-        " architecture."
-    )
+    st.caption("BEZA Cloud Portal • Powered by Cloudflare R2 & httpSMS")
 
   return selected_form
 
@@ -497,7 +520,7 @@ def render_admin_dashboard() -> None:
         f"""
         <div class="metric-card">
             <div class="metric-val">{len(df_submissions)}</div>
-            <div class="metric-lbl">Total Cloud Submissions</div>
+            <div class="metric-lbl">Total Submissions</div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -542,13 +565,13 @@ def render_admin_dashboard() -> None:
   st.dataframe(df_submissions, use_container_width=True)
 
   st.markdown("---")
-  st.markdown("### 🔀 Inter-Agency Routing & Cloud Storage Inspector")
+  st.markdown("### 🔀 Inter-Agency Routing & SMS Notification Inspector")
 
   row_indices = list(range(len(df_submissions)))
   selected_idx = st.selectbox(
       "Select Row Index to Inspect & Route",
       row_indices,
-      format_func=lambda x: f"Row {x} - {df_submissions.loc[x, 'Owner_Name']} [{df_submissions.loc[x, 'App_Ref_No']}] (Submitted: {df_submissions.loc[x, 'Timestamp']})",
+      format_func=lambda x: f"Row {x} - {df_submissions.loc[x, 'Owner_Name']} [{df_submissions.loc[x, 'App_Ref_No']}]",
   )
 
   current_row = df_submissions.loc[selected_idx]
@@ -595,13 +618,35 @@ def render_admin_dashboard() -> None:
         key=f"status_select_{selected_idx}",
     )
 
+    send_sms_flag = st.checkbox(
+        "📱 Send SMS update to applicant via httpSMS", value=True
+    )
+
     if new_stage != current_stage or new_status != current_status:
       df_submissions.loc[selected_idx, "Current_Agency_Stage"] = new_stage
       df_submissions.loc[selected_idx, "Status"] = new_status
       save_submissions(df_submissions, CSV_FILE)
-      st.success(
-          f"✅ Updated agency route to **{new_stage}** successfully! Refreshing..."
-      )
+
+      if send_sms_flag and current_row["Contact_No"]:
+        sms_msg = (
+            f"BEZA Notice: Your permit application ({current_row['App_Ref_No']}) status is now '{new_status}'. "
+            f"Current Stage: {new_stage}."
+        )
+        success_sms = send_sms_notification(
+            str(current_row["Contact_No"]), sms_msg
+        )
+        if success_sms:
+          st.success(
+              f"✅ Updated route and dispatched httpSMS alert to"
+              f" {current_row['Contact_No']}!"
+          )
+        else:
+          st.warning(
+              "⚠️ Database updated, but httpSMS gateway failed to dispatch"
+              " SMS (check API key & gateway phone balance/load)."
+          )
+      else:
+        st.success(f"✅ Updated agency route to **{new_stage}** successfully!")
       st.rerun()
 
   st.markdown("<br>", unsafe_allow_html=True)
@@ -630,55 +675,11 @@ def render_admin_dashboard() -> None:
             f'<a href="{plans_url}" target="_blank"><button'
             ' style="background:#0A2540; color:white; border:none; padding:10px'
             ' 20px; border-radius:6px; font-weight:600; cursor:pointer;">📥'
-            " Download Engineering Plans / CAD Package from"
-            " Cloud</button></a>",
+            " Download Engineering Plans from Cloud</button></a>",
             unsafe_allow_html=True,
         )
     else:
       st.info("Plans key missing in registry.")
-
-  st.markdown("---")
-  st.markdown("### ⚙️ Edit / Delete Entry")
-  col_edit, col_del = st.columns(2)
-
-  with col_edit:
-    with st.form("edit_form"):
-      edit_ref = st.text_input(
-          "Application Reference No.", value=str(current_row["App_Ref_No"])
-      )
-      edit_owner = st.text_input(
-          "Owner Name", value=str(current_row["Owner_Name"])
-      )
-      edit_contact = st.text_input(
-          "Contact No.", value=str(current_row["Contact_No"])
-      )
-      edit_cost = st.number_input(
-          "Estimated Cost (PHP)", value=float(current_row["Estimated_Cost"])
-      )
-      edit_area = st.number_input(
-          "Floor Area (sq. m.)", value=float(current_row["Floor_Area_Sqm"])
-      )
-      save_changes = st.form_submit_button("💾 Save Record Changes")
-
-    if save_changes:
-      df_submissions.loc[selected_idx, "App_Ref_No"] = edit_ref
-      df_submissions.loc[selected_idx, "Owner_Name"] = edit_owner
-      df_submissions.loc[selected_idx, "Contact_No"] = edit_contact
-      df_submissions.loc[selected_idx, "Estimated_Cost"] = edit_cost
-      df_submissions.loc[selected_idx, "Floor_Area_Sqm"] = edit_area
-      if save_submissions(df_submissions, CSV_FILE):
-        st.success(f"✅ Row {selected_idx} updated successfully!")
-        st.rerun()
-
-  with col_del:
-    st.warning("⚠️ Deleting a record is permanent.")
-    if st.button(
-        "🗑️ Delete Record Permanently", type="primary", key="delete_btn"
-    ):
-      df_submissions = df_submissions.drop(selected_idx).reset_index(drop=True)
-      if save_submissions(df_submissions, CSV_FILE):
-        st.success(f"🗑️ Row {selected_idx} deleted!")
-        st.rerun()
 
   st.markdown("---")
   csv_bytes = df_submissions.to_csv(index=False).encode("utf-8")
@@ -704,8 +705,8 @@ def render_public_submission_form(module_name: str) -> None:
       <div class="info-card">
           <b>📌 One-Stop Shop Cloud Workflow Instructions:</b><br>
           1. Download the official blank PDF template from the sidebar document center.<br>
-          2. Complete the form and compile your required engineering plans and technical drawings (PDF or AutoCAD .dwg format).<br>
-          3. Transmit your complete digital package below. Files are uploaded securely to <b>Cloudflare R2 cloud storage</b>. BEZA OBO coordinates directly with MENRE, MOLE, and BFP.
+          2. Complete the form and compile your required engineering plans and technical drawings.<br>
+          3. Transmit your complete digital package below. Files are uploaded securely to <b>Cloudflare R2 cloud storage</b> and applicants receive automated <b>httpSMS notifications</b>.
       </div>
       """,
       unsafe_allow_html=True,
@@ -744,7 +745,9 @@ def render_public_submission_form(module_name: str) -> None:
     enterprise_name = col_c.text_input(
         "Registered Enterprise Name (if applicable)"
     )
-    contact_no = col_d.text_input("Official Contact Number / Mobile No. *")
+    contact_no = col_d.text_input(
+        "Official Contact Number / Mobile No. (e.g., +63...) *"
+    )
 
     location = st.text_input(
         "Exact Location of Construction / Installation (Zone, Municipality) *"
@@ -781,8 +784,7 @@ def render_public_submission_form(module_name: str) -> None:
           "Upload Accomplished & Signed Official Form (PDF) *", type=["pdf"]
       )
       uploaded_plans = st.file_uploader(
-          "Upload Signed & Sealed Engineering Plans / CAD Drawings (PDF or"
-          " .dwg) *",
+          "Upload Signed & Sealed Engineering Plans / CAD Drawings *",
           type=["pdf", "dwg"],
       )
 
@@ -797,7 +799,7 @@ def render_public_submission_form(module_name: str) -> None:
 
     st.markdown("<br>", unsafe_allow_html=True)
     submitted = st.form_submit_button(
-        "🔒 Securely Transmit Application Package to BEZA Cloud Portal"
+        "🔒 Securely Transmit Application Package & Dispatch SMS Notice"
     )
 
   if submitted:
@@ -819,7 +821,6 @@ def render_public_submission_form(module_name: str) -> None:
       active_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
       auto_ref_no = f"BEZA-{datetime.now().strftime('%Y%m%d%H%M%S')}"
 
-      # Upload files directly to Cloudflare R2 Cloud Object Storage
       safe_form_name = sanitize_filename(uploaded_application_form.name)
       form_key = f"uploads/{auto_ref_no}_form_{safe_form_name}"
       form_uploaded = upload_file_to_r2(uploaded_application_form, form_key)
@@ -856,23 +857,22 @@ def render_public_submission_form(module_name: str) -> None:
         df_combined = pd.concat([df_existing, df_new], ignore_index=True)
 
         if save_submissions(df_combined, CSV_FILE):
+          sms_welcome = (
+              f"BEZA OBO: Application received! Ref: {auto_ref_no}. "
+              f"Status: Under Evaluation. Track online via your ref number."
+          )
+          sms_sent = send_sms_notification(contact_no, sms_welcome)
+
           st.success(
-              f"✅ **Cloud Transmission Successful!** Files securely uploaded to"
-              f" Cloudflare R2.\n\n"
-              f"⏱️ **Active Submission Timestamp:** `{active_timestamp}`\n"
-              f"📌 **Tracking Reference No.:** `{auto_ref_no}`\n"
-              f"📍 **Current Document Location:** `{AGENCY_STAGES[0]}`\n\n"
-              f"🏗️ **Declared Area:** {floor_area:,.2f} sq. m. | 💰 **Estimated"
-              f" Cost:** ₱{estimated_cost:,.2f}\n\n"
-              "*(BEZA OBO coordinates your application with MENRE, MOLE, and"
-              " BFP on your behalf.)*"
+              f"✅ **Cloud Transmission & SMS Notice Successful!**\n\n"
+              f"⏱️ **Timestamp:** `{active_timestamp}`\n"
+              f"📌 **Tracking Ref:** `{auto_ref_no}`\n"
+              f"📱 **httpSMS Notification:** "
+              f"{'Dispatched successfully to ' + contact_no if sms_sent else 'Gateway not configured or gateway phone lacks load.'}"
           )
           st.balloons()
       else:
-        st.error(
-            "❌ Failed to upload files to Cloudflare R2 bucket. Please check"
-            " your credentials and bucket name."
-        )
+        st.error("❌ Failed to upload files to Cloudflare R2 bucket.")
 
 
 # ==========================================
