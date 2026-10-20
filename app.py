@@ -41,44 +41,206 @@ REQUIRED_COLUMNS: List[str] = [
 
 FILENAME_MAP: Dict[str, str] = {
     "BUILDING PERMIT": "BEZA.EESSU.F.001 BUILDING PERMIT.pdf",
-    "BEZA.EESSU.F.002 MECHANICAL PERMIT": "BEZA.EESSU.F.002 MECHANICAL PERMIT.pdf",
+    "BEZA.EESSU.F.002 MECHANICAL PERMIT": (
+        "BEZA.EESSU.F.002 MECHANICAL PERMIT.pdf"
+    ),
     "ELECTRICAL PERMIT": "BEZA.EESSU.F.003 ELECTRICAL PERMIT.pdf",
     "ELECTRONICS PERMIT": "BEZA.EESSU.F.004 ELECTRONICS PERMIT.pdf",
     "FENCING PERMIT": "BEZA.EESSU.F.005 FENCING PERMIT.pdf",
-    "SANITARY AND PLUMBING PERMIT": "BEZA.EESSU.F.006 SANITARY AND PLUMBING PERMIT.pdf",
+    "SANITARY AND PLUMBING PERMIT": (
+        "BEZA.EESSU.F.006 SANITARY AND PLUMBING PERMIT.pdf"
+    ),
     "Mechanical Data Sheet": "BEZA.EESSU.F.007 Mechanical Data Sheet.pdf",
     "Electrical Data Sheet": "BEZA.EESSU.F.008 Electrical Data Sheet.pdf",
     "Electronics Data Sheet": "BEZA.EESSU.F.009 Electronics Data Sheet.pdf",
     "BEZA DEMOLITION PERMIT": "BEZA DEMOLITION PERMIT FORM.pdf",
-    "BEZA SIGN & SIGN STRUCTURE PERMIT": "BEZA SIGN AND SIGN STRUCTURE PERMIT FORM MERGED.pdf",
-    "Excavation & Ground Preparation Permit": "Application-Form-Excavation-Ground-Preparation-and-Soil-Investigation.pdf",
+    "BEZA SIGN & SIGN STRUCTURE PERMIT": (
+        "BEZA SIGN AND SIGN STRUCTURE PERMIT FORM MERGED.pdf"
+    ),
+    "Excavation & Ground Preparation Permit": (
+        "Application-Form-Excavation-Ground-Preparation-and-Soil-Investigation.pdf"
+    ),
     "Building Permit Checklist": "building permit.pdf",
     "Anti Graft": "anti_graft_1.doc",
 }
 
 # Page Setup
 st.set_page_config(
-    page_title="BEZA Electronic Permitting & Licensing Portal",
-    page_icon="🏢",
+    page_title="BEZA Electronic Permitting Portal",
+    page_icon="🏛️",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
 # ==========================================
-# 2. ENTERPRISE CSS & DESIGN TOKENS
+# 2. ADVANCED ENTERPRISE CSS INJECTION (10/10 VISUAL DESIGN)
 # ==========================================
 st.markdown(
     """
     <style>
-        .main-title { font-size: 22px; font-weight: 700; color: #0F172A; margin-bottom: 0px; letter-spacing: -0.5px; }
-        .sub-title { font-size: 13px; font-weight: 600; color: #475569; margin-top: 2px; }
-        .section-header { font-size: 15px; font-weight: 600; color: #1E3A8A; margin-top: 15px; margin-bottom: 10px; border-bottom: 2px solid #E2E8F0; padding-bottom: 4px; }
-        .status-badge-eval { background-color: #FEF3C7; color: #92400E; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; }
-        .status-badge-approved { background-color: #D1FAE5; color: #065F46; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; }
-        .status-badge-pending { background-color: #E0E7FF; color: #3730A3; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; }
-        .metric-card { background-color: #F8FAFC; border: 1px solid #E2E8F0; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        /* Import Professional Typography */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+        html, body, [class*="css"] {
+            font-family: 'Inter', sans-serif;
+            color: #1E293B;
+        }
+
+        /* Main Container Padding & Background */
+        .main .block-container {
+            padding-top: 1.5rem;
+            padding-bottom: 3rem;
+            max-width: 1280px;
+        }
+
+        /* Executive Header Banner */
+        .hero-banner {
+            background: linear-gradient(135deg, #0A2540 0%, #006A35 100%);
+            padding: 24px 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px -5px rgba(0, 106, 53, 0.25);
+            color: #FFFFFF;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 25px;
+            border-bottom: 4px solid #FFC72C;
+        }
+        .hero-title {
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin: 0;
+            color: #FFFFFF !important;
+        }
+        .hero-subtitle {
+            font-size: 13px;
+            color: #E2E8F0;
+            margin-top: 4px;
+            font-weight: 500;
+        }
+        .arta-badge {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            display: inline-block;
+            margin-top: 8px;
+            color: #FFC72C;
+        }
+
+        /* Module Title Ribbon */
+        .module-header {
+            background: #F1F5F9;
+            border-left: 5px solid #006A35;
+            padding: 12px 18px;
+            border-radius: 0 8px 8px 0;
+            font-size: 18px;
+            font-weight: 700;
+            color: #0F172A;
+            margin-bottom: 15px;
+        }
+
+        /* Instruction Card */
+        .info-card {
+            background-color: #EFF6FF;
+            border: 1px solid #BFDBFE;
+            border-radius: 8px;
+            padding: 14px 18px;
+            color: #1E40AF;
+            font-size: 13px;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        /* Form Container Styling */
+        div[data-testid="stForm"] {
+            background: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+        }
+
+        /* Section Headers inside forms */
+        .section-header {
+            font-size: 15px;
+            font-weight: 700;
+            color: #0A2540;
+            margin-top: 10px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Sidebar Styling */
+        section[data-testid="stSidebar"] {
+            background-color: #F8FAFC;
+            border-right: 1px solid #E2E8F0;
+        }
+        
+        /* Custom Buttons */
+        div.stButton > button[kind="primary"], .stFormSubmitButton > button {
+            background: linear-gradient(135deg, #006A35 0%, #004D26 100%) !important;
+            color: white !important;
+            font-weight: 600 !important;
+            border-radius: 6px !important;
+            border: none !important;
+            padding: 10px 24px !important;
+            transition: all 0.2s ease !important;
+            box-shadow: 0 4px 10px rgba(0, 106, 53, 0.2) !important;
+            width: 100%;
+        }
+        div.stButton > button[kind="primary"]:hover, .stFormSubmitButton > button:hover {
+            background: linear-gradient(135deg, #005028 0%, #003319 100%) !important;
+            box-shadow: 0 6px 15px rgba(0, 106, 53, 0.3) !important;
+            transform: translateY(-1px);
+        }
+
+        /* Stat Metrics Cards */
+        .metric-card {
+            background: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            border-top: 4px solid #006A35;
+            padding: 18px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            text-align: center;
+        }
+        .metric-val {
+            font-size: 26px;
+            font-weight: 800;
+            color: #0A2540;
+        }
+        .metric-lbl {
+            font-size: 12px;
+            color: #64748B;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        /* Status Badges */
+        .badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            display: inline-block;
+        }
+        .badge-eval { background: #FEF3C7; color: #92400E; border: 1px solid #FCD34D; }
+        .badge-approved { background: #D1FAE5; color: #065F46; border: 1px solid #6EE7B7; }
+        .badge-pending { background: #FEE2E2; color: #991B1B; border: 1px solid #FCA5A5; }
+
+        /* Hide Streamlit Standard Header/Footer for Cleanliness */
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
     </style>
-    """,
+""",
     unsafe_allow_html=True,
 )
 
@@ -158,28 +320,37 @@ if "admin_authenticated" not in st.session_state:
 
 
 # ==========================================
-# 5. HEADER RENDERER
+# 5. POLISHED HEADER RENDERER
 # ==========================================
 def render_header() -> None:
-  """Renders the official government portal header with agency branding."""
-  col_logo, col_text = st.columns([1, 8])
-  with col_logo:
-    if os.path.exists(LOGO_FILENAME):
-      st.image(LOGO_FILENAME, width=75)
-    else:
-      st.write("🏢")
+  """Renders an executive government header banner."""
+  logo_html = ""
+  if os.path.exists(LOGO_FILENAME):
+    logo_html = f'<img src="data:image/png;base64,{get_base64_image(LOGO_FILENAME)}" style="height: 65px; width: auto; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">'
+  else:
+    logo_html = '<div style="font-size: 40px;">🏛️</div>'
 
-  with col_text:
-    st.markdown(
-        '<div class="main-title">BANGSAMORO ECONOMIC ZONE AUTHORITY (BEZA)</div>',
-        unsafe_allow_html=True,
-    )
-    st.markdown(
-        '<div class="sub-title">Office of the Building Official — Electronic'
-        " Permitting & E-Services Portal (RA 11032 ARTA Compliant)</div>",
-        unsafe_allow_html=True,
-    )
-  st.markdown("---")
+  st.markdown(
+      f"""
+      <div class="hero-banner">
+          <div>{logo_html}</div>
+          <div>
+              <div class="hero-title">BANGSAMORO ECONOMIC ZONE AUTHORITY</div>
+              <div class="hero-subtitle">Office of the Building Official — Electronic Permitting & E-Services Portal</div>
+              <div class="arta-badge">⚡ RA 11032 ARTA Compliant • Zero-Contact Processing</div>
+          </div>
+      </div>
+      """,
+      unsafe_allow_html=True,
+  )
+
+
+def get_base64_image(image_path: str) -> str:
+  """Encodes local logo image to base64 for reliable inline HTML rendering."""
+  import base64
+
+  with open(image_path, "rb") as img_file:
+    return base64.b64encode(img_file.read()).decode("utf-8")
 
 
 render_header()
@@ -192,7 +363,7 @@ def render_sidebar() -> str:
   """Renders the sidebar navigation, tracking tool, document center, and admin gateway."""
   with st.sidebar:
     if os.path.exists(LOGO_FILENAME):
-      st.image(LOGO_FILENAME, width=110)
+      st.image(LOGO_FILENAME, width=120)
 
     st.markdown("### 📋 Regulatory Modules")
     selected_form = st.selectbox(
@@ -211,36 +382,48 @@ def render_sidebar() -> str:
         if not match.empty:
           row = match.iloc[0]
           status = row.get("Status", "Under Evaluation")
-          st.success(
-              f"✅ Status: **{status}**\n\n"
-              f"• **Owner:** {row['Owner_Name']}\n"
-              f"• **Module:** {row['Module']}\n"
-              f"• **Filing Date:** {row['Timestamp']}"
+
+          badge_class = "badge-eval"
+          if status == "Approved":
+            badge_class = "badge-approved"
+          elif status == "Pending Requirements":
+            badge_class = "badge-pending"
+
+          st.markdown(
+              f"""
+              <div style="background:#FFFFFF; border:1px solid #E2E8F0; padding:12px; border-radius:8px; margin-top:8px;">
+                  <div style="font-size:12px; color:#64748B;">Tracking Status:</div>
+                  <div style="margin-top:4px;"><span class="badge {badge_class}">{status}</span></div>
+                  <hr style="margin:8px 0; border:none; border-top:1px solid #F1F5F9;">
+                  <div style="font-size:12px;"><b>Owner:</b> {row['Owner_Name']}</div>
+                  <div style="font-size:12px;"><b>Module:</b> {row['Module']}</div>
+              </div>
+              """,
+              unsafe_allow_html=True,
           )
         else:
-          st.error("❌ Reference number not found in gateway records.")
+          st.error("❌ Reference number not found.")
       else:
         st.info("No records in system yet.")
 
     st.markdown("---")
     st.markdown("### 📥 Document Center")
-    st.write("Download official blank templates for offline encoding:")
+    st.caption("Download official blank templates for offline encoding:")
 
     target_file = FILENAME_MAP.get(selected_form)
     if target_file and os.path.exists(target_file):
       with open(target_file, "rb") as pdf_file:
         st.download_button(
-            label="📄 Download Blank Official PDF",
+            label="📄 Download Official PDF Form",
             data=pdf_file,
             file_name=target_file,
             mime="application/pdf",
-            type="primary",
         )
     else:
       st.warning("Template file not found in repository.")
 
     st.markdown("---")
-    st.markdown("### 🔒 BEZA Official Gateway")
+    st.markdown("### 🔒 Official Gateway")
 
     if st.session_state.admin_authenticated:
       st.success("Admin Session Active")
@@ -248,9 +431,9 @@ def render_sidebar() -> str:
         st.session_state.admin_authenticated = False
         st.rerun()
     else:
-      admin_toggle = st.checkbox("Access Official Review Panel")
+      admin_toggle = st.checkbox("Access Review Panel")
       if admin_toggle:
-        admin_pin = st.text_input("Enter Official Access PIN", type="password")
+        admin_pin = st.text_input("Enter Access PIN", type="password")
         if admin_pin:
           if verify_admin_pin(admin_pin):
             st.session_state.admin_authenticated = True
@@ -260,10 +443,9 @@ def render_sidebar() -> str:
             st.error("Invalid security PIN.")
 
     st.markdown("---")
-    st.markdown("### ⚖️ ARTA Compliance")
-    st.info(
-        "Streamlined e-submission portal designed for efficient technical"
-        " evaluation and transparent processing cycles."
+    st.caption(
+        "BEZA Digital Portal v2.4 • Streamlined e-submission platform"
+        " engineered for technical evaluation."
     )
 
   return selected_form
@@ -276,11 +458,11 @@ selected_form = render_sidebar()
 # 7. PORTAL VIEW 2: ADMIN REVIEW DASHBOARD
 # ==========================================
 def render_admin_dashboard() -> None:
-  """Renders the secure administrative review dashboard for managing applications."""
-  st.markdown("### 🛡️ BEZA Official Evaluation & Review Dashboard")
-  st.write(
-      "Review incoming applicant submissions, inspect/download uploaded files,"
-      " update evaluation status, edit records, or process audit logs."
+  """Renders the administrative review dashboard with metrics and status controls."""
+  st.markdown(
+      '<div class="module-header">🛡️ BEZA Official Evaluation & Review'
+      " Dashboard</div>",
+      unsafe_allow_html=True,
   )
 
   df_submissions = load_submissions(CSV_FILE)
@@ -289,16 +471,33 @@ def render_admin_dashboard() -> None:
     st.info("No application submissions recorded in the database yet.")
     return
 
+  # Executive KPI Metrics Cards
   col_m1, col_m2, col_m3 = st.columns(3)
   with col_m1:
-    st.metric("Total Submissions", len(df_submissions))
+    st.markdown(
+        f"""
+        <div class="metric-card">
+            <div class="metric-val">{len(df_submissions)}</div>
+            <div class="metric-lbl">Total Received Submissions</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
   with col_m2:
     total_est_cost = (
         df_submissions["Estimated_Cost"].sum()
         if "Estimated_Cost" in df_submissions
         else 0.0
     )
-    st.metric("Total Project Portfolio", f"₱{total_est_cost:,.2f}")
+    st.markdown(
+        f"""
+        <div class="metric-card">
+            <div class="metric-val">₱{total_est_cost:,.2f}</div>
+            <div class="metric-lbl">Declared Project Portfolio</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
   with col_m3:
     pending_count = (
         len(
@@ -309,14 +508,22 @@ def render_admin_dashboard() -> None:
         if "Status" in df_submissions
         else 0
     )
-    st.metric("Pending Evaluations", pending_count)
+    st.markdown(
+        f"""
+        <div class="metric-card">
+            <div class="metric-val" style="color: #D97706;">{pending_count}</div>
+            <div class="metric-lbl">Pending Technical Reviews</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
-  st.markdown("---")
+  st.markdown("<br>", unsafe_allow_html=True)
   st.markdown("### 📊 Submissions Master Registry")
   st.dataframe(df_submissions, use_container_width=True)
 
   st.markdown("---")
-  st.markdown("### 🔍 Inspect, Update Status & Download Files")
+  st.markdown("### 🔍 Inspect Record, Update Status & Downloads")
 
   row_indices = list(range(len(df_submissions)))
   selected_idx = st.selectbox(
@@ -329,10 +536,17 @@ def render_admin_dashboard() -> None:
 
   col_info1, col_info2 = st.columns(2)
   with col_info1:
-    st.write(f"**Applicant:** {current_row['Owner_Name']}")
-    st.write(f"**Tracking Ref:** `{current_row['App_Ref_No']}`")
-    st.write(f"**Contact Number:** {current_row['Contact_No']}")
-    st.write(f"**Current Module:** {current_row['Module']}")
+    st.markdown(
+        f"""
+        <div style="background:#F8FAFC; border:1px solid #E2E8F0; padding:15px; border-radius:8px;">
+            <div style="font-size:14px; margin-bottom:4px;"><b>Applicant Name:</b> {current_row['Owner_Name']}</div>
+            <div style="font-size:14px; margin-bottom:4px;"><b>Tracking Ref:</b> <code>{current_row['App_Ref_No']}</code></div>
+            <div style="font-size:14px; margin-bottom:4px;"><b>Contact No:</b> {current_row['Contact_No']}</div>
+            <div style="font-size:14px;"><b>Module Category:</b> {current_row['Module']}</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
   with col_info2:
     current_status = current_row.get("Status", "Under Evaluation")
     new_status = st.selectbox(
@@ -354,6 +568,7 @@ def render_admin_dashboard() -> None:
       st.success(f"Status updated to **{new_status}** successfully!")
       st.rerun()
 
+  st.markdown("<br>", unsafe_allow_html=True)
   col_f1, col_f2 = st.columns(2)
   with col_f1:
     form_path = current_row.get("Form_Path", "")
@@ -374,7 +589,7 @@ def render_admin_dashboard() -> None:
     if isinstance(plans_path, str) and os.path.exists(plans_path):
       with open(plans_path, "rb") as f:
         st.download_button(
-            label="📥 Download Engineering Plans",
+            label="📥 Download Engineering Plans Package",
             data=f,
             file_name=os.path.basename(plans_path),
             mime="application/pdf",
@@ -384,7 +599,7 @@ def render_admin_dashboard() -> None:
       st.info("Engineering plans file not found on server storage.")
 
   st.markdown("---")
-  st.markdown("### ⚙️ Manage / Edit / Delete Submission Record")
+  st.markdown("### ⚙️ Edit / Delete Entry")
   col_edit, col_del = st.columns(2)
 
   with col_edit:
@@ -413,9 +628,7 @@ def render_admin_dashboard() -> None:
       df_submissions.loc[selected_idx, "Estimated_Cost"] = edit_cost
       df_submissions.loc[selected_idx, "Floor_Area_Sqm"] = edit_area
       if save_submissions(df_submissions, CSV_FILE):
-        st.success(
-            f"✅ Row {selected_idx} successfully updated! Refreshing view..."
-        )
+        st.success(f"✅ Row {selected_idx} updated successfully!")
         st.rerun()
 
   with col_del:
@@ -424,25 +637,20 @@ def render_admin_dashboard() -> None:
         " audit log."
     )
     if st.button(
-        "🗑️ Delete This Record Permanently",
-        type="primary",
-        key="delete_btn",
+        "🗑️ Delete Record Permanently", type="primary", key="delete_btn"
     ):
       df_submissions = df_submissions.drop(selected_idx).reset_index(drop=True)
       if save_submissions(df_submissions, CSV_FILE):
-        st.success(
-            f"🗑️ Row {selected_idx} successfully deleted! Refreshing view..."
-        )
+        st.success(f"🗑️ Row {selected_idx} deleted!")
         st.rerun()
 
   st.markdown("---")
   csv_bytes = df_submissions.to_csv(index=False).encode("utf-8")
   st.download_button(
-      label="📥 Export Submission Audit Log (CSV)",
+      label="📥 Export Complete Audit Log (CSV)",
       data=csv_bytes,
       file_name="BEZA_Audit_Logs.csv",
       mime="text/csv",
-      type="primary",
   )
 
 
@@ -451,16 +659,26 @@ def render_admin_dashboard() -> None:
 # ==========================================
 def render_public_submission_form(module_name: str) -> None:
   """Renders the secure applicant submission form for public filers."""
-  st.markdown(f"### Active Module: **{module_name}**")
-  st.info(
-      "**Workflow Instructions:** 1. Download the official blank form from the"
-      " sidebar. 2. Accomplish the form and compile required engineering plans"
-      " and specifications. 3. Submit your complete digital package below."
+  st.markdown(
+      f'<div class="module-header">Active Module: <b>{module_name}</b></div>',
+      unsafe_allow_html=True,
+  )
+
+  st.markdown(
+      """
+      <div class="info-card">
+          <b>📌 Workflow Instructions:</b><br>
+          1. Download the official blank PDF template from the sidebar document center.<br>
+          2. Fill out and execute required signatures & seals with your licensed engineers.<br>
+          3. Upload the completed application form and engineering plans in the secure submission form below.
+      </div>
+      """,
+      unsafe_allow_html=True,
   )
 
   with st.form("technical_submission_form"):
     st.markdown(
-        '<div class="section-header">1. Project Identification & Applicant'
+        '<div class="section-header">📌 1. Project Identification & Applicant'
         " Metadata</div>",
         unsafe_allow_html=True,
     )
@@ -497,9 +715,9 @@ def render_public_submission_form(module_name: str) -> None:
         "Exact Location of Construction / Installation (Zone, Municipality) *"
     )
 
-    st.markdown("---")
+    st.markdown("<br>", unsafe_allow_html=True)
     st.markdown(
-        '<div class="section-header">2. Engineering Metrics & Cost Estimates'
+        '<div class="section-header">📐 2. Engineering Metrics & Cost Estimates'
         " (Box 3A Data)</div>",
         unsafe_allow_html=True,
     )
@@ -512,13 +730,13 @@ def render_public_submission_form(module_name: str) -> None:
         "Total Estimated Project Cost (PHP) *", min_value=0.0, step=1000.0
     )
     materials = m3.selectbox(
-        "Primary Materials", ["Concrete", "Steel", "Wooden", "Mixed"]
+        "Primary Structural Materials", ["Concrete", "Steel", "Wooden", "Mixed"]
     )
 
-    st.markdown("---")
+    st.markdown("<br>", unsafe_allow_html=True)
     st.markdown(
-        '<div class="section-header">3. Technical Document Attachments (PDF / CAD'
-        " Packages)</div>",
+        '<div class="section-header">📂 3. Technical Document Attachments (PDF /'
+        " CAD Packages)</div>",
         unsafe_allow_html=True,
     )
 
@@ -536,13 +754,13 @@ def render_public_submission_form(module_name: str) -> None:
           "Upload Structural / Technical Computations (PDF)", type=["pdf"]
       )
       uploaded_clearances = st.file_uploader(
-          "Upload Environmental / Zone Clearances & Supporting Docs (PDF/ZIP)",
+          "Upload Environmental / Zone Clearances (PDF/ZIP)",
           type=["pdf", "zip"],
       )
 
-    st.markdown("---")
+    st.markdown("<br>", unsafe_allow_html=True)
     submitted = st.form_submit_button(
-        "🔒 Securely Transmit Application Package to BEZA", type="primary"
+        "🔒 Securely Transmit Application Package to BEZA"
     )
 
   if submitted:
@@ -557,8 +775,8 @@ def render_public_submission_form(module_name: str) -> None:
         or not uploaded_plans
     ):
       st.error(
-          "⚠️ Incomplete Submission: Please ensure all mandatory fields (*),"
-          " valid project metrics, and required PDF documents are attached."
+          "⚠️ Incomplete Submission: Please fill out all required fields (*)"
+          " and attach required PDF files."
       )
     else:
       auto_ref_no = f"BEZA-{pd.Timestamp.now().strftime('%Y%m%d%H%M%S')}"
@@ -603,9 +821,9 @@ def render_public_submission_form(module_name: str) -> None:
       if save_submissions(df_combined, CSV_FILE):
         st.success(
             f"✅ **Transmission Successful!** Your application package has been"
-            f" successfully received by BEZA.\n\n"
+            f" successfully received.\n\n"
             f"📌 **System-Generated Tracking Reference No.:** `{auto_ref_no}`\n"
-            f"📱 **SMS / Contact Dispatch Notice:** Confirmation logged for contact"
+            f"📱 **SMS Dispatch Notice:** Confirmation logged for contact"
             f" number `{contact_no}`.\n\n"
             f"🏗️ **Declared Area:** {floor_area:,.2f} sq. m. | 💰 **Estimated"
             f" Cost:** ₱{estimated_cost:,.2f}\n\n"
