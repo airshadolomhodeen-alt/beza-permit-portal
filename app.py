@@ -763,13 +763,33 @@ def render_public_submission_form(module_name: str) -> None:
     )
     tin = col_b.text_input("Taxpayer Identification No. (TIN) *")
 
-    col_c, col_d = st.columns(2)
+    # --- Country Code Flag Selector & Mobile Input ---
+    col_c, col_d1, col_d2 = st.columns([2, 1, 2])
     enterprise_name = col_c.text_input(
         "Registered Enterprise Name (if applicable)"
     )
-    contact_no = col_d.text_input(
-        "Official Contact Number / Mobile No. (e.g., +63...) *"
+
+    country_code = col_d1.selectbox(
+        "Country Code *",
+        [
+            "🇵🇭 Philippines (+63)",
+            "🇺🇸 USA / Canada (+1)",
+            "🇸🇬 Singapore (+65)",
+            "🇦🇪 UAE (+971)",
+            "🇸🇦 Saudi Arabia (+966)",
+            "🇯🇵 Japan (+81)",
+            "🇲🇾 Malaysia (+60)",
+        ],
+        index=0,
     )
+    prefix = country_code.split("(")[-1].replace(")", "").strip()
+
+    raw_mobile = col_d2.text_input(
+        "Mobile No. (e.g., 9171234567) *",
+        placeholder="9171234567",
+    )
+    clean_number = raw_mobile.lstrip("0").strip()
+    contact_no = f"{prefix}{clean_number}" if clean_number else ""
 
     location = st.text_input(
         "Exact Location of Construction / Installation (Zone, Municipality) *"
@@ -829,7 +849,7 @@ def render_public_submission_form(module_name: str) -> None:
         not owner_name
         or not tin
         or not location
-        or not contact_no
+        or not raw_mobile
         or floor_area <= 0
         or estimated_cost <= 0
         or not uploaded_application_form
