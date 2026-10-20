@@ -71,6 +71,10 @@ REQUIRED_COLUMNS: List[str] = [
     "Form_Key",
     "Plans_File",
     "Plans_Key",
+    "Computations_File",
+    "Computations_Key",
+    "Clearances_File",
+    "Clearances_Key",
     "Status",
     "Current_Agency_Stage",
 ]
@@ -698,38 +702,77 @@ def render_admin_dashboard() -> None:
         st.rerun()
 
     st.markdown("<br>", unsafe_allow_html=True)
-    col_f1, col_f2 = st.columns(2)
+    
+    # --- Full 4-Column Admin Download Suite ---
+    col_f1, col_f2, col_f3, col_f4 = st.columns(4)
+
+    # 1. Official Application Form
     with col_f1:
       form_key = current_row.get("Form_Key", "")
-      if form_key:
-        form_url = get_r2_download_link(form_key)
+      if pd.notna(form_key) and form_key:
+        form_url = get_r2_download_link(str(form_key))
         if form_url:
           st.markdown(
               f'<a href="{form_url}" target="_blank"><button'
               ' style="background:#006A35; color:white; border:none;'
-              ' padding:12px 20px; border-radius:8px; font-weight:700;'
-              ' cursor:pointer; width:100%;">📥 Download Application Form from'
-              " Cloud</button></a>",
+              " padding:12px 10px; border-radius:8px; font-weight:700;"
+              " cursor:pointer; width:100%; font-size:12px;">📥 Application"
+              " Form</button></a>",
               unsafe_allow_html=True,
           )
       else:
-        st.info("Form key missing in registry.")
+        st.info("No Form attached")
 
+    # 2. Engineering Plans
     with col_f2:
       plans_key = current_row.get("Plans_Key", "")
-      if plans_key:
-        plans_url = get_r2_download_link(plans_key)
+      if pd.notna(plans_key) and plans_key:
+        plans_url = get_r2_download_link(str(plans_key))
         if plans_url:
           st.markdown(
               f'<a href="{plans_url}" target="_blank"><button'
               ' style="background:#0A2540; color:white; border:none;'
-              ' padding:12px 20px; border-radius:8px; font-weight:700;'
-              ' cursor:pointer; width:100%;">📥 Download Engineering Plans from'
-              " Cloud</button></a>",
+              " padding:12px 10px; border-radius:8px; font-weight:700;"
+              " cursor:pointer; width:100%; font-size:12px;">📥 Engineering"
+              " Plans</button></a>",
               unsafe_allow_html=True,
           )
       else:
-        st.info("Plans key missing in registry.")
+        st.info("No Plans attached")
+
+    # 3. Structural Computations
+    with col_f3:
+      comp_key = current_row.get("Computations_Key", "")
+      if pd.notna(comp_key) and str(comp_key).strip():
+        comp_url = get_r2_download_link(str(comp_key))
+        if comp_url:
+          st.markdown(
+              f'<a href="{comp_url}" target="_blank"><button'
+              ' style="background:#D97706; color:white; border:none;'
+              " padding:12px 10px; border-radius:8px; font-weight:700;"
+              " cursor:pointer; width:100%; font-size:12px;">📥 Structural"
+              " Computations</button></a>",
+              unsafe_allow_html=True,
+          )
+      else:
+        st.info("No Computations")
+
+    # 4. Environmental Clearances / ZIP Package
+    with col_f4:
+      clear_key = current_row.get("Clearances_Key", "")
+      if pd.notna(clear_key) and str(clear_key).strip():
+        clear_url = get_r2_download_link(str(clear_key))
+        if clear_url:
+          st.markdown(
+              f'<a href="{clear_url}" target="_blank"><button'
+              ' style="background:#4F46E5; color:white; border:none;'
+              " padding:12px 10px; border-radius:8px; font-weight:700;"
+              " cursor:pointer; width:100%; font-size:12px;">📥 Environmental"
+              " Clearances / ZIP</button></a>",
+              unsafe_allow_html=True,
+          )
+      else:
+        st.info("No Clearances")
 
   st.markdown("---")
   csv_bytes = edited_df.to_csv(index=False).encode("utf-8")
@@ -844,7 +887,7 @@ def render_public_submission_form(module_name: str) -> None:
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown(
         '<div class="section-header">📂 3. Technical Document Attachments (PDF /'
-        " CAD .dwg Packages)</div>",
+        " CAD .dwg Packages / ZIP)</div>",
         unsafe_allow_html=True,
     )
 
@@ -891,13 +934,33 @@ def render_public_submission_form(module_name: str) -> None:
       active_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
       auto_ref_no = f"BEZA-{datetime.now().strftime('%Y%m%d%H%M%S')}"
 
+      # 1. Upload Form
       safe_form_name = sanitize_filename(uploaded_application_form.name)
       form_key = f"uploads/{auto_ref_no}_form_{safe_form_name}"
       form_uploaded = upload_file_to_r2(uploaded_application_form, form_key)
 
+      # 2. Upload Plans
       safe_plans_name = sanitize_filename(uploaded_plans.name)
       plans_key = f"uploads/{auto_ref_no}_plans_{safe_plans_name}"
       plans_uploaded = upload_file_to_r2(uploaded_plans, plans_key)
+
+      # 3. Upload Optional Computations
+      comp_file_name = ""
+      comp_key = ""
+      if uploaded_computations:
+        safe_comp_name = sanitize_filename(uploaded_computations.name)
+        comp_key = f"uploads/{auto_ref_no}_comp_{safe_comp_name}"
+        upload_file_to_r2(uploaded_computations, comp_key)
+        comp_file_name = uploaded_computations.name
+
+      # 4. Upload Optional Clearances (supports .zip)
+      clear_file_name = ""
+      clear_key = ""
+      if uploaded_clearances:
+        safe_clear_name = sanitize_filename(uploaded_clearances.name)
+        clear_key = f"uploads/{auto_ref_no}_clear_{safe_clear_name}"
+        upload_file_to_r2(uploaded_clearances, clear_key)
+        clear_file_name = uploaded_clearances.name
 
       if form_uploaded and plans_uploaded:
         sub_data = {
@@ -918,6 +981,10 @@ def render_public_submission_form(module_name: str) -> None:
             "Form_Key": [form_key],
             "Plans_File": [uploaded_plans.name],
             "Plans_Key": [plans_key],
+            "Computations_File": [comp_file_name],
+            "Computations_Key": [comp_key],
+            "Clearances_File": [clear_file_name],
+            "Clearances_Key": [clear_key],
             "Status": ["Under Evaluation"],
             "Current_Agency_Stage": [AGENCY_STAGES[0]],
         }
@@ -942,7 +1009,7 @@ def render_public_submission_form(module_name: str) -> None:
           )
           st.balloons()
       else:
-        st.error("❌ Failed to upload files to Cloudflare R2 bucket.")
+        st.error("❌ Failed to upload required files to Cloudflare R2 bucket.")
 
 
 # ==========================================
