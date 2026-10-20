@@ -583,128 +583,150 @@ def render_admin_dashboard() -> None:
     )
 
   st.markdown("<br>", unsafe_allow_html=True)
-  st.markdown("### 📊 Submissions Master Registry")
-  st.dataframe(df_submissions, use_container_width=True)
+  st.markdown("### 📊 Submissions Master Registry (Interactive)")
+  st.caption(
+      "💡 **Direct Editing & Row Deletion Enabled:** Click cell values to edit"
+      " directly, or select row checkboxes and press **Delete** on your"
+      " keyboard to remove records."
+  )
+
+  # Upgraded to st.data_editor to allow inline editing and row deletion
+  edited_df = st.data_editor(
+      df_submissions,
+      num_rows="dynamic",
+      use_container_width=True,
+      key="master_registry_editor",
+  )
+
+  if not edited_df.equals(df_submissions):
+    if save_submissions(edited_df, CSV_FILE):
+      st.success("✅ Master Registry updated and saved successfully!")
+      st.rerun()
 
   st.markdown("---")
   st.markdown("### 🔀 Inter-Agency Routing & SMS Notification Inspector")
 
-  row_indices = list(range(len(df_submissions)))
-  selected_idx = st.selectbox(
-      "Select Row Index to Inspect & Route",
-      row_indices,
-      format_func=lambda x: f"Row {x} - {df_submissions.loc[x, 'Owner_Name']} [{df_submissions.loc[x, 'App_Ref_No']}]",
-  )
-
-  current_row = df_submissions.loc[selected_idx]
-
-  col_info1, col_info2 = st.columns(2)
-  with col_info1:
-    st.markdown(
-        f"""
-        <div style="background:#FFFFFF; border:1px solid #E2E8F0; padding:18px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.02);">
-            <div style="font-size:13px; color:#0F172A; margin-bottom:6px;"><b>Active Timestamp:</b> <code>{current_row['Timestamp']}</code></div>
-            <div style="font-size:13px; color:#0F172A; margin-bottom:6px;"><b>Applicant Name:</b> {current_row['Owner_Name']}</div>
-            <div style="font-size:13px; color:#0F172A; margin-bottom:6px;"><b>Tracking Ref:</b> <code>{current_row['App_Ref_No']}</code></div>
-            <div style="font-size:13px; color:#0F172A; margin-bottom:6px;"><b>Contact No:</b> {current_row['Contact_No']}</div>
-            <div style="font-size:13px; color:#0F172A;"><b>Module Category:</b> {current_row['Module']}</div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-  with col_info2:
-    current_stage = current_row.get("Current_Agency_Stage", AGENCY_STAGES[0])
-    new_stage = st.selectbox(
-        "Update Current Agency / Processing Stage",
-        AGENCY_STAGES,
-        index=(
-            AGENCY_STAGES.index(current_stage)
-            if current_stage in AGENCY_STAGES
-            else 0
-        ),
-        key=f"agency_stage_{selected_idx}",
+  if not edited_df.empty:
+    row_indices = list(range(len(edited_df)))
+    selected_idx = st.selectbox(
+        "Select Row Index to Inspect & Route",
+        row_indices,
+        format_func=lambda x: f"Row {x} - {edited_df.loc[x, 'Owner_Name']} [{edited_df.loc[x, 'App_Ref_No']}]",
     )
 
-    current_status = current_row.get("Status", "Under Evaluation")
-    new_status = st.selectbox(
-        "Update Overall Status",
-        ["Under Evaluation", "Approved", "Pending Requirements"],
-        index=(
-            ["Under Evaluation", "Approved", "Pending Requirements"].index(
-                current_status
-            )
-            if current_status
-            in ["Under Evaluation", "Approved", "Pending Requirements"]
-            else 0
-        ),
-        key=f"status_select_{selected_idx}",
-    )
+    current_row = edited_df.loc[selected_idx]
 
-    send_sms_flag = st.checkbox(
-        "📱 Send SMS update to applicant via httpSMS", value=True
-    )
+    col_info1, col_info2 = st.columns(2)
+    with col_info1:
+      st.markdown(
+          f"""
+          <div style="background:#FFFFFF; border:1px solid #E2E8F0; padding:18px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.02);">
+              <div style="font-size:13px; color:#0F172A; margin-bottom:6px;"><b>Active Timestamp:</b> <code>{current_row['Timestamp']}</code></div>
+              <div style="font-size:13px; color:#0F172A; margin-bottom:6px;"><b>Applicant Name:</b> {current_row['Owner_Name']}</div>
+              <div style="font-size:13px; color:#0F172A; margin-bottom:6px;"><b>Tracking Ref:</b> <code>{current_row['App_Ref_No']}</code></div>
+              <div style="font-size:13px; color:#0F172A; margin-bottom:6px;"><b>Contact No:</b> {current_row['Contact_No']}</div>
+              <div style="font-size:13px; color:#0F172A;"><b>Module Category:</b> {current_row['Module']}</div>
+          </div>
+          """,
+          unsafe_allow_html=True,
+      )
+    with col_info2:
+      current_stage = current_row.get("Current_Agency_Stage", AGENCY_STAGES[0])
+      new_stage = st.selectbox(
+          "Update Current Agency / Processing Stage",
+          AGENCY_STAGES,
+          index=(
+              AGENCY_STAGES.index(current_stage)
+              if current_stage in AGENCY_STAGES
+              else 0
+          ),
+          key=f"agency_stage_{selected_idx}",
+      )
 
-    if new_stage != current_stage or new_status != current_status:
-      df_submissions.loc[selected_idx, "Current_Agency_Stage"] = new_stage
-      df_submissions.loc[selected_idx, "Status"] = new_status
-      save_submissions(df_submissions, CSV_FILE)
+      current_status = current_row.get("Status", "Under Evaluation")
+      new_status = st.selectbox(
+          "Update Overall Status",
+          ["Under Evaluation", "Approved", "Pending Requirements"],
+          index=(
+              ["Under Evaluation", "Approved", "Pending Requirements"].index(
+                  current_status
+              )
+              if current_status
+              in ["Under Evaluation", "Approved", "Pending Requirements"]
+              else 0
+          ),
+          key=f"status_select_{selected_idx}",
+      )
 
-      if send_sms_flag and current_row["Contact_No"]:
-        sms_msg = (
-            f"BEZA Notice: Your permit application ({current_row['App_Ref_No']}) status is now '{new_status}'. "
-            f"Current Stage: {new_stage}."
-        )
-        success_sms = send_sms_notification(
-            str(current_row["Contact_No"]), sms_msg
-        )
-        if success_sms:
-          st.success(
-              f"✅ Updated route and dispatched httpSMS alert to"
-              f" {current_row['Contact_No']}!"
+      send_sms_flag = st.checkbox(
+          "📱 Send SMS update to applicant via httpSMS", value=True
+      )
+
+      if new_stage != current_stage or new_status != current_status:
+        edited_df.loc[selected_idx, "Current_Agency_Stage"] = new_stage
+        edited_df.loc[selected_idx, "Status"] = new_status
+        save_submissions(edited_df, CSV_FILE)
+
+        if send_sms_flag and current_row["Contact_No"]:
+          sms_msg = (
+              f"BEZA Notice: Your permit application ({current_row['App_Ref_No']}) status is now '{new_status}'. "
+              f"Current Stage: {new_stage}."
           )
+          success_sms = send_sms_notification(
+              str(current_row["Contact_No"]), sms_msg
+          )
+          if success_sms:
+            st.success(
+                f"✅ Updated route and dispatched httpSMS alert to"
+                f" {current_row['Contact_No']}!"
+            )
+          else:
+            st.warning(
+                "⚠️ Database updated, but httpSMS gateway failed to dispatch"
+                " SMS (check API key & gateway phone balance/load)."
+            )
         else:
-          st.warning(
-              "⚠️ Database updated, but httpSMS gateway failed to dispatch"
-              " SMS (check API key & gateway phone balance/load)."
+          st.success(
+              f"✅ Updated agency route to **{new_stage}** successfully!"
+          )
+        st.rerun()
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    col_f1, col_f2 = st.columns(2)
+    with col_f1:
+      form_key = current_row.get("Form_Key", "")
+      if form_key:
+        form_url = get_r2_download_link(form_key)
+        if form_url:
+          st.markdown(
+              f'<a href="{form_url}" target="_blank"><button'
+              ' style="background:#006A35; color:white; border:none;'
+              ' padding:12px 20px; border-radius:8px; font-weight:700;'
+              ' cursor:pointer; width:100%;">📥 Download Application Form from'
+              " Cloud</button></a>",
+              unsafe_allow_html=True,
           )
       else:
-        st.success(f"✅ Updated agency route to **{new_stage}** successfully!")
-      st.rerun()
+        st.info("Form key missing in registry.")
 
-  st.markdown("<br>", unsafe_allow_html=True)
-  col_f1, col_f2 = st.columns(2)
-  with col_f1:
-    form_key = current_row.get("Form_Key", "")
-    if form_key:
-      form_url = get_r2_download_link(form_key)
-      if form_url:
-        st.markdown(
-            f'<a href="{form_url}" target="_blank"><button'
-            ' style="background:#006A35; color:white; border:none; padding:12px'
-            ' 20px; border-radius:8px; font-weight:700; cursor:pointer;'
-            ' width:100%;">📥 Download Application Form from Cloud</button></a>',
-            unsafe_allow_html=True,
-        )
-    else:
-      st.info("Form key missing in registry.")
-
-  with col_f2:
-    plans_key = current_row.get("Plans_Key", "")
-    if plans_key:
-      plans_url = get_r2_download_link(plans_key)
-      if plans_url:
-        st.markdown(
-            f'<a href="{plans_url}" target="_blank"><button'
-            ' style="background:#0A2540; color:white; border:none; padding:12px'
-            ' 20px; border-radius:8px; font-weight:700; cursor:pointer;'
-            ' width:100%;">📥 Download Engineering Plans from Cloud</button></a>',
-            unsafe_allow_html=True,
-        )
-    else:
-      st.info("Plans key missing in registry.")
+    with col_f2:
+      plans_key = current_row.get("Plans_Key", "")
+      if plans_key:
+        plans_url = get_r2_download_link(plans_key)
+        if plans_url:
+          st.markdown(
+              f'<a href="{plans_url}" target="_blank"><button'
+              ' style="background:#0A2540; color:white; border:none;'
+              ' padding:12px 20px; border-radius:8px; font-weight:700;'
+              ' cursor:pointer; width:100%;">📥 Download Engineering Plans from'
+              " Cloud</button></a>",
+              unsafe_allow_html=True,
+          )
+      else:
+        st.info("Plans key missing in registry.")
 
   st.markdown("---")
-  csv_bytes = df_submissions.to_csv(index=False).encode("utf-8")
+  csv_bytes = edited_df.to_csv(index=False).encode("utf-8")
   st.download_button(
       label="📥 Export Complete Audit Log (CSV)",
       data=csv_bytes,
