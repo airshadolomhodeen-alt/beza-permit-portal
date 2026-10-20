@@ -398,9 +398,12 @@ def save_submissions(df: pd.DataFrame, csv_path: str) -> bool:
 if "admin_authenticated" not in st.session_state:
   st.session_state.admin_authenticated = False
 
+if "accepted_guidelines" not in st.session_state:
+  st.session_state.accepted_guidelines = False
+
 
 # ==========================================
-# 4. HEADER & SIDEBAR
+# 4. UI COMPONENTS & RENDER FUNCTIONS
 # ==========================================
 def render_header() -> None:
   logo_html = ""
@@ -426,9 +429,6 @@ def render_header() -> None:
       """,
       unsafe_allow_html=True,
   )
-
-
-render_header()
 
 
 def render_sidebar() -> str:
@@ -525,98 +525,6 @@ def render_sidebar() -> str:
   return selected_form
 
 
-# ==========================================
-# 5. GUIDELINES & PRE-CHECK GATEWAY
-# ==========================================
-if "accepted_guidelines" not in st.session_state:
-  st.session_state.accepted_guidelines = False
-
-if not st.session_state.admin_authenticated and not st.session_state.accepted_guidelines:
-  st.markdown(
-      '<div class="module-header">🏛️ BEZA Electronic Permitting Portal — Terms &'
-      ' Guidelines</div>',
-      unsafe_allow_html=True,
-  )
-
-  st.markdown(
-      """
-      <div class="info-card" style="background-color: #F8FAFC; border: 1px solid #CBD5E1; color: #0F172A !important;">
-          <b>⚠️ IMPORTANT NOTICE TO ALL APPLICANTS:</b><br>
-          Before proceeding with your electronic submission under the National Building Code (NBC), please read and understand the official compliance guidelines below. Click <b>"Continue to Portal"</b> at the bottom to unlock the submission forms.
-      </div>
-      """,
-      unsafe_allow_html=True,
-  )
-
-  # Guidelines formatted as clean Markdown
-  st.markdown("### GUIDELINES IN THE SUBMISSION OF APPLICATIONS FOR PERMITS UNDER THE NATIONAL BUILDING CODE (NBC):")
-  
-  guidelines_content = """
-**A. PRE-CONSTRUCTION STAGE**
-* **Company Registration:** All applications for permits under the National Building Code (NBC) – building, sanitary/plumbing, fencing, electronics, electrical, and mechanical must be in the BEZA company's complete registered company name (as indicated in the BEZA Registration Certificate).
-* **Signatures & Authorization:** All applications must be signed by the company owner or authorized representative (in case of a representative, a secretary certificate or authorization letter from the owner is required). Printed name and position of signatory must be indicated in the plans.
-* **Professional Seals:** All applications must be signed and sealed by the required professional with valid PRC license and updated PTR. Clear copy of PRC and PTR must be submitted. Dry seal in all plans and documents must be clear and recognizable.
-* **Project Title Uniformity:** If the proposed project has several components - civil, sanitary/plumbing, fencing, electrical and mechanical, the same project title will be used in all the plans and documents to be submitted.
-* **Simultaneous Submissions:** All plans and documents of the project components must be submitted at the same time – partial submissions will not be accepted.
-* **Plan Dimensions:** Required plans are 2 standard size (20"x30") and 1 A3 size.
-* **Scaling Rules:** Plans must be drawn in scale as required under the NBC or the biggest possible scale in a 20x30 sheet. If fitting the entire layout in a 20x30 sheet will still result to a smaller scale - sectional details must be provided in scale 1:100. Scale used must be indicated.
-* **Gridlines:** All drawings must have gridlines and dimensions.
-* **Site Development:** Site development plans must be drawn in scale 1:100 or biggest possible scale in a 20x30 sheet.
-* **Project Location Plans:** Project location plans (in case of interior works and installation) must be the floor plan of the entire floor where the project will be implemented.
-* **Header Information:** As indicated in the checklist of requirements, all pages of the structural/electrical computation, detailed material and cost estimate, and technical specification must have the BEZA company's name, complete project title (as in the plans) and location.
-* **Technical Specifications:** Technical Specification must contain not only the list of materials to be used but must enumerate/state Codes/Publications/Standards to be used as reference in the project, method of execution, testing etc.
-* **Leased Facilities:** In case of company leasing from BEZA facilities – the location will be the lessor's bldg. and unit no. and BEZA zone or IT Site (e.g., Unit 1 ABCEDEF Building, Alphabet St. Laguna Technopark). For IT enterprises, e.g., Unit 2301 23rd floor XYZ Bldg. Makati, must be indicated in the plans and all documents.
-* **IT Enterprise Furniture Layout:** For IT Enterprises applying for building permit, floor plans with furniture layout must indicate width of aisles/walkways and distance back to back of chairs with notation that distances indicated in plans are when seats are occupied.
-* **Erasures & Corrections:** In case of erasures, notations, changes, or any paper pasted on the plans - all must be properly countersigned and noted by the signing professional of the page or sheet.
-* **Complete Packages:** Only complete and complying documents will be accepted. – No plan or document will be accepted for safekeeping.
-
----
-
-**B. POST-CONSTRUCTION STAGE**
-* **Permits to Operate:** After completion of work and prior to use/occupancy and operation, BEZA Registered Enterprise must secure Occupancy Permit and Electrical and Mechanical Permit to Operate. Must submit requirements as per checklist.
-* **As-Built Plans:** All plans must be labeled AS-BUILT as of date (month & year) and the Project Title must be the same as in the proposed plan (used in the pre-construction permit applications).
-* **Signatures:** The plans and Certificates of Completion must be signed and sealed by the same designer engineer who signed the application form and proposed plans.
-* **Dual Authorization:** The plans must be signed and sealed by both the Designer and Project-in-Charge.
-* **No Partial Submissions:** Only complete and complying documents will be accepted. – No partial submission will be allowed.
-
----
-
-**PROOF OF ACCEPTANCE OF APPLICATION IS A CLAIM SLIP** with application reference no. Only the original copy of the claim slip can be used to claim assessments, permits, and certificates. (Xerox and fax copies will not be honored)
-  """
-
-  # Scrollable container using Streamlit native container
-  with st.container(height=380):
-    st.markdown(guidelines_content)
-
-  st.markdown("<br>", unsafe_allow_html=True)
-
-  # Agreement Form & Continue Button
-  with st.form("guidelines_agreement_form"):
-    agreed = st.checkbox(
-        "I have read, understood, and agree to comply with all BEZA pre-construction"
-        " and post-construction guidelines stated above. *"
-    )
-    st.markdown("<br>", unsafe_allow_html=True)
-    proceed_btn = st.form_submit_button(
-        "🚀 I Have Read and Agree — Continue to Portal"
-    )
-
-  if proceed_btn:
-    if agreed:
-      st.session_state.accepted_guidelines = True
-      st.success("Guidelines accepted! Loading portal...")
-      st.rerun()
-    else:
-      st.error(
-          "⚠️ You must check the agreement box to confirm you have read the"
-          " guidelines before proceeding to the application portal."
-      )
-
-  st.stop()  # Halts execution until guidelines are accepted
-
-# ==========================================
-# 6. ADMIN REVIEW & ROUTING DASHBOARD
-# ==========================================
 def render_admin_dashboard() -> None:
   st.markdown(
       '<div class="module-header">🛡️ BEZA One-Stop Shop Cloud Review'
@@ -684,7 +592,6 @@ def render_admin_dashboard() -> None:
       " keyboard to remove records."
   )
 
-  # Upgraded to st.data_editor to allow inline editing and row deletion
   edited_df = st.data_editor(
       df_submissions,
       num_rows="dynamic",
@@ -787,7 +694,7 @@ def render_admin_dashboard() -> None:
 
     st.markdown("<br>", unsafe_allow_html=True)
     
-    # --- Full 4-Column Admin Download Suite (Single-Line Strings) ---
+    # --- Full 4-Column Admin Download Suite ---
     col_f1, col_f2, col_f3, col_f4 = st.columns(4)
 
     # 1. Official Application Form
@@ -844,9 +751,6 @@ def render_admin_dashboard() -> None:
   )
 
 
-# ==========================================
-# 7. PUBLIC SUBMISSION FORM
-# ==========================================
 def render_public_submission_form(module_name: str) -> None:
   st.markdown(
       f'<div class="module-header">Active Module: <b>{module_name}</b></div>',
@@ -1073,8 +977,93 @@ def render_public_submission_form(module_name: str) -> None:
 
 
 # ==========================================
-# 8. MAIN ROUTING CONTROLLER
+# 5. EXECUTION & ROUTING CONTROLLER
 # ==========================================
+render_header()
+selected_form = render_sidebar()
+
+# --- Guidelines & Pre-Check Gateway Screen ---
+if not st.session_state.admin_authenticated and not st.session_state.accepted_guidelines:
+  st.markdown(
+      '<div class="module-header">🏛️ BEZA Electronic Permitting Portal — Terms &'
+      " Guidelines</div>",
+      unsafe_allow_html=True,
+  )
+
+  st.markdown(
+      """
+      <div class="info-card" style="background-color: #F8FAFC; border: 1px solid #CBD5E1; color: #0F172A !important;">
+          <b>⚠️ IMPORTANT NOTICE TO ALL APPLICANTS:</b><br>
+          Before proceeding with your electronic submission under the National Building Code (NBC), please read and understand the official compliance guidelines below. Click <b>"Continue to Portal"</b> at the bottom to unlock the submission forms.
+      </div>
+      """,
+      unsafe_allow_html=True,
+  )
+
+  st.markdown("### GUIDELINES IN THE SUBMISSION OF APPLICATIONS FOR PERMITS UNDER THE NATIONAL BUILDING CODE (NBC):")
+  
+  guidelines_content = """
+**A. PRE-CONSTRUCTION STAGE**
+* **Company Registration:** All applications for permits under the National Building Code (NBC) – building, sanitary/plumbing, fencing, electronics, electrical, and mechanical must be in the BEZA company's complete registered company name (as indicated in the BEZA Registration Certificate).
+* **Signatures & Authorization:** All applications must be signed by the company owner or authorized representative (in case of a representative, a secretary certificate or authorization letter from the owner is required). Printed name and position of signatory must be indicated in the plans.
+* **Professional Seals:** All applications must be signed and sealed by the required professional with valid PRC license and updated PTR. Clear copy of PRC and PTR must be submitted. Dry seal in all plans and documents must be clear and recognizable.
+* **Project Title Uniformity:** If the proposed project has several components - civil, sanitary/plumbing, fencing, electrical and mechanical, the same project title will be used in all the plans and documents to be submitted.
+* **Simultaneous Submissions:** All plans and documents of the project components must be submitted at the same time – partial submissions will not be accepted.
+* **Plan Dimensions:** Required plans are 2 standard size (20"x30") and 1 A3 size.
+* **Scaling Rules:** Plans must be drawn in scale as required under the NBC or the biggest possible scale in a 20x30 sheet. If fitting the entire layout in a 20x30 sheet will still result to a smaller scale - sectional details must be provided in scale 1:100. Scale used must be indicated.
+* **Gridlines:** All drawings must have gridlines and dimensions.
+* **Site Development:** Site development plans must be drawn in scale 1:100 or biggest possible scale in a 20x30 sheet.
+* **Project Location Plans:** Project location plans (in case of interior works and installation) must be the floor plan of the entire floor where the project will be implemented.
+* **Header Information:** As indicated in the checklist of requirements, all pages of the structural/electrical computation, detailed material and cost estimate, and technical specification must have the BEZA company's name, complete project title (as in the plans) and location.
+* **Technical Specifications:** Technical Specification must contain not only the list of materials to be used but must enumerate/state Codes/Publications/Standards to be used as reference in the project, method of execution, testing etc.
+* **Leased Facilities:** In case of company leasing from BEZA facilities – the location will be the lessor's bldg. and unit no. and BEZA zone or IT Site (e.g., Unit 1 ABCEDEF Building, Alphabet St. Laguna Technopark). For IT enterprises, e.g., Unit 2301 23rd floor XYZ Bldg. Makati, must be indicated in the plans and all documents.
+* **IT Enterprise Furniture Layout:** For IT Enterprises applying for building permit, floor plans with furniture layout must indicate width of aisles/walkways and distance back to back of chairs with notation that distances indicated in plans are when seats are occupied.
+* **Erasures & Corrections:** In case of erasures, notations, changes, or any paper pasted on the plans - all must be properly countersigned and noted by the signing professional of the page or sheet.
+* **Complete Packages:** Only complete and complying documents will be accepted. – No plan or document will be accepted for safekeeping.
+
+---
+
+**B. POST-CONSTRUCTION STAGE**
+* **Permits to Operate:** After completion of work and prior to use/occupancy and operation, BEZA Registered Enterprise must secure Occupancy Permit and Electrical and Mechanical Permit to Operate. Must submit requirements as per checklist.
+* **As-Built Plans:** All plans must be labeled AS-BUILT as of date (month & year) and the Project Title must be the same as in the proposed plan (used in the pre-construction permit applications).
+* **Signatures:** The plans and Certificates of Completion must be signed and sealed by the same designer engineer who signed the application form and proposed plans.
+* **Dual Authorization:** The plans must be signed and sealed by both the Designer and Project-in-Charge.
+* **No Partial Submissions:** Only complete and complying documents will be accepted. – No partial submission will be allowed.
+
+---
+
+**PROOF OF ACCEPTANCE OF APPLICATION IS A CLAIM SLIP** with application reference no. Only the original copy of the claim slip can be used to claim assessments, permits, and certificates. (Xerox and fax copies will not be honored)
+  """
+
+  with st.container(height=380):
+    st.markdown(guidelines_content)
+
+  st.markdown("<br>", unsafe_allow_html=True)
+
+  with st.form("guidelines_agreement_form"):
+    agreed = st.checkbox(
+        "I have read, understood, and agree to comply with all BEZA pre-construction"
+        " and post-construction guidelines stated above. *"
+    )
+    st.markdown("<br>", unsafe_allow_html=True)
+    proceed_btn = st.form_submit_button(
+        "🚀 I Have Read and Agree — Continue to Portal"
+    )
+
+  if proceed_btn:
+    if agreed:
+      st.session_state.accepted_guidelines = True
+      st.success("Guidelines accepted! Loading portal...")
+      st.rerun()
+    else:
+      st.error(
+          "⚠️ You must check the agreement box to confirm you have read the"
+          " guidelines before proceeding to the application portal."
+      )
+
+  st.stop()
+
+# --- Main Routing Controller (Post-Guidelines or Admin) ---
 if st.session_state.admin_authenticated:
   render_admin_dashboard()
 else:
