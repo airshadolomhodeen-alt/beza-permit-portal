@@ -81,7 +81,7 @@ REQUIRED_COLUMNS: List[str] = [
 
 FILENAME_MAP: Dict[str, str] = {
     "BUILDING PERMIT": "BEZA.EESSU.F.001 BUILDING PERMIT.pdf",
-    "BEZA.EESSU.F.002 MECHANICAL PERMIT": (
+    "MECHANICAL PERMIT": (
         "BEZA.EESSU.F.002 MECHANICAL PERMIT.pdf"
     ),
     "ELECTRICAL PERMIT": "BEZA.EESSU.F.003 ELECTRICAL PERMIT.pdf",
@@ -133,7 +133,6 @@ st.markdown(
             max-width: 1280px;
         }
         
-        /* Completely Hide Streamlit Branding / Top Toolbar */
         header[data-testid="stHeader"] {
             display: none !important;
         }
@@ -206,7 +205,6 @@ st.markdown(
             margin-bottom: 24px;
         }
 
-        /* High Contrast Labels for Cross-Platform Viewers */
         label, .stSelectbox label, .stTextInput label, .stNumberInput label, .stFileUploader label, p, span {
             color: #0F172A !important;
             font-weight: 600 !important;
@@ -248,7 +246,6 @@ st.markdown(
             width: 100%;
         }
 
-        /* Metrics */
         .metric-card {
             background: #FFFFFF;
             border: 1px solid #E2E8F0;
@@ -281,6 +278,34 @@ st.markdown(
         .badge-eval { background: #FEF3C7; color: #92400E !important; border: 1px solid #FCD34D; }
         .badge-approved { background: #D1FAE5; color: #065F46 !important; border: 1px solid #6EE7B7; }
         .badge-pending { background: #FEE2E2; color: #991B1B !important; border: 1px solid #FCA5A5; }
+
+        /* Printable Receiving Claim Slip Card Styling */
+        .printable-slip-card {
+            background: #FFFFFF;
+            border: 2px dashed #006A35;
+            padding: 24px;
+            border-radius: 10px;
+            font-family: 'Plus Jakarta Sans', monospace;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            max-width: 650px;
+            margin: 0 auto;
+        }
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .printable-slip-card, .printable-slip-card * {
+                visibility: visible;
+            }
+            .printable-slip-card {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                border: none;
+                box-shadow: none;
+            }
+        }
     </style>
 """,
     unsafe_allow_html=True,
@@ -291,7 +316,6 @@ st.markdown(
 # 3. UTILITIES & HTTPSMS GATEWAY
 # ==========================================
 def get_r2_client():
-  """Constructs a boto3 S3 client configured specifically for Cloudflare R2 SigV4 authentication."""
   return boto3.client(
       "s3",
       endpoint_url=R2_ENDPOINT_URL,
@@ -327,7 +351,6 @@ def get_r2_download_link(object_key: str, expiration: int = 3600) -> Optional[st
 
 
 def send_sms_notification(to_phone: str, message: str) -> bool:
-  """Sends an SMS notification via httpsms.com API gateway."""
   if not HTTPSMS_API_KEY or not HTTPSMS_SENDER_PHONE:
     return False
 
@@ -617,129 +640,195 @@ def render_admin_dashboard() -> None:
 
     current_row = edited_df.loc[selected_idx]
 
-    col_info1, col_info2 = st.columns(2)
-    with col_info1:
-      st.markdown(
-          f"""
-          <div style="background:#FFFFFF; border:1px solid #E2E8F0; padding:18px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.02);">
-              <div style="font-size:13px; color:#0F172A; margin-bottom:6px;"><b>Active Timestamp:</b> <code>{current_row['Timestamp']}</code></div>
-              <div style="font-size:13px; color:#0F172A; margin-bottom:6px;"><b>Applicant Name:</b> {current_row['Owner_Name']}</div>
-              <div style="font-size:13px; color:#0F172A; margin-bottom:6px;"><b>Tracking Ref:</b> <code>{current_row['App_Ref_No']}</code></div>
-              <div style="font-size:13px; color:#0F172A; margin-bottom:6px;"><b>Contact No:</b> {current_row['Contact_No']}</div>
-              <div style="font-size:13px; color:#0F172A;"><b>Module Category:</b> {current_row['Module']}</div>
-          </div>
-          """,
-          unsafe_allow_html=True,
-      )
-    with col_info2:
-      current_stage = current_row.get("Current_Agency_Stage", AGENCY_STAGES[0])
-      new_stage = st.selectbox(
-          "Update Current Agency / Processing Stage",
-          AGENCY_STAGES,
-          index=(
-              AGENCY_STAGES.index(current_stage)
-              if current_stage in AGENCY_STAGES
-              else 0
-          ),
-          key=f"agency_stage_{selected_idx}",
-      )
+    # --- Sub-navigation / Action Tabs like Screenshot ---
+    tab_inspect, tab_print = st.tabs(
+        ["📝 Routing & Attachments", "🖨️ Printable Receiving Slip"]
+    )
 
-      current_status = current_row.get("Status", "Under Evaluation")
-      new_status = st.selectbox(
-          "Update Overall Status",
-          ["Under Evaluation", "Approved", "Pending Requirements"],
-          index=(
-              ["Under Evaluation", "Approved", "Pending Requirements"].index(
-                  current_status
+    with tab_inspect:
+      col_info1, col_info2 = st.columns(2)
+      with col_info1:
+        st.markdown(
+            f"""
+            <div style="background:#FFFFFF; border:1px solid #E2E8F0; padding:18px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.02);">
+                <div style="font-size:13px; color:#0F172A; margin-bottom:6px;"><b>Active Timestamp:</b> <code>{current_row['Timestamp']}</code></div>
+                <div style="font-size:13px; color:#0F172A; margin-bottom:6px;"><b>Applicant Name:</b> {current_row['Owner_Name']}</div>
+                <div style="font-size:13px; color:#0F172A; margin-bottom:6px;"><b>Tracking Ref:</b> <code>{current_row['App_Ref_No']}</code></div>
+                <div style="font-size:13px; color:#0F172A; margin-bottom:6px;"><b>Contact No:</b> {current_row['Contact_No']}</div>
+                <div style="font-size:13px; color:#0F172A;"><b>Module Category:</b> {current_row['Module']}</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+      with col_info2:
+        current_stage = current_row.get("Current_Agency_Stage", AGENCY_STAGES[0])
+        new_stage = st.selectbox(
+            "Update Current Agency / Processing Stage",
+            AGENCY_STAGES,
+            index=(
+                AGENCY_STAGES.index(current_stage)
+                if current_stage in AGENCY_STAGES
+                else 0
+            ),
+            key=f"agency_stage_{selected_idx}",
+        )
+
+        current_status = current_row.get("Status", "Under Evaluation")
+        new_status = st.selectbox(
+            "Update Overall Status",
+            ["Under Evaluation", "Approved", "Pending Requirements"],
+            index=(
+                ["Under Evaluation", "Approved", "Pending Requirements"].index(
+                    current_status
+                )
+                if current_status
+                in ["Under Evaluation", "Approved", "Pending Requirements"]
+                else 0
+            ),
+            key=f"status_select_{selected_idx}",
+        )
+
+        send_sms_flag = st.checkbox(
+            "📱 Send SMS update to applicant via httpSMS", value=True
+        )
+
+        if new_stage != current_stage or new_status != current_status:
+          edited_df.loc[selected_idx, "Current_Agency_Stage"] = new_stage
+          edited_df.loc[selected_idx, "Status"] = new_status
+          save_submissions(edited_df, CSV_FILE)
+
+          if send_sms_flag and current_row["Contact_No"]:
+            sms_msg = (
+                f"BEZA Notice: Your permit application ({current_row['App_Ref_No']}) status is now '{new_status}'. "
+                f"Current Stage: {new_stage}."
+            )
+            success_sms = send_sms_notification(
+                str(current_row["Contact_No"]), sms_msg
+            )
+            if success_sms:
+              st.success(
+                  f"✅ Updated route and dispatched httpSMS alert to"
+                  f" {current_row['Contact_No']}!"
               )
-              if current_status
-              in ["Under Evaluation", "Approved", "Pending Requirements"]
-              else 0
-          ),
-          key=f"status_select_{selected_idx}",
-      )
-
-      send_sms_flag = st.checkbox(
-          "📱 Send SMS update to applicant via httpSMS", value=True
-      )
-
-      if new_stage != current_stage or new_status != current_status:
-        edited_df.loc[selected_idx, "Current_Agency_Stage"] = new_stage
-        edited_df.loc[selected_idx, "Status"] = new_status
-        save_submissions(edited_df, CSV_FILE)
-
-        if send_sms_flag and current_row["Contact_No"]:
-          sms_msg = (
-              f"BEZA Notice: Your permit application ({current_row['App_Ref_No']}) status is now '{new_status}'. "
-              f"Current Stage: {new_stage}."
-          )
-          success_sms = send_sms_notification(
-              str(current_row["Contact_No"]), sms_msg
-          )
-          if success_sms:
-            st.success(
-                f"✅ Updated route and dispatched httpSMS alert to"
-                f" {current_row['Contact_No']}!"
-            )
+            else:
+              st.warning(
+                  "⚠️ Database updated, but httpSMS gateway failed to dispatch"
+                  " SMS (check API key & gateway phone balance/load)."
+              )
           else:
-            st.warning(
-                "⚠️ Database updated, but httpSMS gateway failed to dispatch"
-                " SMS (check API key & gateway phone balance/load)."
+            st.success(
+                f"✅ Updated agency route to **{new_stage}** successfully!"
             )
+          st.rerun()
+
+      st.markdown("<br>", unsafe_allow_html=True)
+      
+      # --- Full 4-Column Admin Download Suite ---
+      col_f1, col_f2, col_f3, col_f4 = st.columns(4)
+
+      with col_f1:
+        form_key = current_row.get("Form_Key", "")
+        if pd.notna(form_key) and form_key:
+          form_url = get_r2_download_link(str(form_key))
+          if form_url:
+            btn_html = f'<a href="{form_url}" target="_blank"><button style="background:#006A35; color:white; border:none; padding:12px 10px; border-radius:8px; font-weight:700; cursor:pointer; width:100%; font-size:12px;">Download Application Form</button></a>'
+            st.markdown(btn_html, unsafe_allow_html=True)
         else:
-          st.success(
-              f"✅ Updated agency route to **{new_stage}** successfully!"
+          st.info("No Form attached")
+
+      with col_f2:
+        plans_key = current_row.get("Plans_Key", "")
+        if pd.notna(plans_key) and plans_key:
+          plans_url = get_r2_download_link(str(plans_key))
+          if plans_url:
+            btn_html = f'<a href="{plans_url}" target="_blank"><button style="background:#0A2540; color:white; border:none; padding:12px 10px; border-radius:8px; font-weight:700; cursor:pointer; width:100%; font-size:12px;">Download Engineering Plans</button></a>'
+            st.markdown(btn_html, unsafe_allow_html=True)
+        else:
+          st.info("No Plans attached")
+
+      with col_f3:
+        comp_key = current_row.get("Computations_Key", "")
+        if pd.notna(comp_key) and str(comp_key).strip():
+          comp_url = get_r2_download_link(str(comp_key))
+          if comp_url:
+            btn_html = f'<a href="{comp_url}" target="_blank"><button style="background:#D97706; color:white; border:none; padding:12px 10px; border-radius:8px; font-weight:700; cursor:pointer; width:100%; font-size:12px;">Download Computations</button></a>'
+            st.markdown(btn_html, unsafe_allow_html=True)
+        else:
+          st.info("No Computations")
+
+      with col_f4:
+        clear_key = current_row.get("Clearances_Key", "")
+        if pd.notna(clear_key) and str(clear_key).strip():
+          clear_url = get_r2_download_link(str(clear_key))
+          if clear_url:
+            btn_html = f'<a href="{clear_url}" target="_blank"><button style="background:#4F46E5; color:white; border:none; padding:12px 10px; border-radius:8px; font-weight:700; cursor:pointer; width:100%; font-size:12px;">Download Clearances / ZIP</button></a>'
+            st.markdown(btn_html, unsafe_allow_html=True)
+        else:
+          st.info("No Clearances")
+
+    with tab_print:
+      st.markdown("### 🖨️ Official Receiving Record & Claim Slip Preview")
+      st.caption("This printable document represents the official file receipt by the BEZA Records Officer for the selected applicant.")
+
+      slip_html = f"""
+      <div class="printable-slip-card">
+          <div style="text-align: center; font-weight: 800; font-size: 14px; letter-spacing: 0.5px;">BANGSAMORO ECONOMIC ZONE AUTHORITY</div>
+          <div style="text-align: center; font-size: 11px; font-weight: 700; color: #006A35; margin-bottom: 12px;">OFFICE OF THE BUILDING OFFICIAL — RECORDS & INTAKE SECTION</div>
+          <div style="text-align: center; font-weight: 700; font-size: 13px; text-decoration: underline; margin-bottom: 15px;">OFFICIAL APPLICATION RECEIVING & CLAIM SLIP</div>
+          
+          <table style="width: 100%; font-size: 12px; margin-bottom: 15px; border-collapse: collapse;">
+              <tr>
+                  <td style="padding: 4px 0; color: #64748B; width: 35%;"><b>Tracking No:</b></td>
+                  <td style="padding: 4px 0; font-weight: 700; color: #0A2540;">{current_row['App_Ref_No']}</td>
+              </tr>
+              <tr>
+                  <td style="padding: 4px 0; color: #64748B;"><b>Applicant / Owner:</b></td>
+                  <td style="padding: 4px 0; font-weight: 700; color: #0F172A;">{current_row['Owner_Name']}</td>
+              </tr>
+              <tr>
+                  <td style="padding: 4px 0; color: #64748B;"><b>Module / Permit:</b></td>
+                  <td style="padding: 4px 0; font-weight: 600;">{current_row['Module']}</td>
+              </tr>
+              <tr>
+                  <td style="padding: 4px 0; color: #64748B;"><b>Location:</b></td>
+                  <td style="padding: 4px 0; font-weight: 600;">{current_row['Location']}</td>
+              </tr>
+              <tr>
+                  <td style="padding: 4px 0; color: #64748B;"><b>Floor Area / Cost:</b></td>
+                  <td style="padding: 4px 0; font-weight: 600;">{current_row['Floor_Area_Sqm']} sq.m. | ₱{current_row['Estimated_Cost']:,.2f}</td>
+              </tr>
+              <tr>
+                  <td style="padding: 4px 0; color: #64748B;"><b>Date Filed:</b></td>
+                  <td style="padding: 4px 0; font-weight: 600;">{current_row['Timestamp']}</td>
+              </tr>
+          </table>
+          
+          <hr style="border: none; border-top: 1px dashed #CBD5E1; margin: 12px 0;">
+          
+          <div style="font-size: 11px; margin-bottom: 20px;">
+              <b>Received By (Records Officer):</b><br>
+              <span style="font-size: 12px; font-weight: 700;">BEZA OBO Records & Intake Desk</span>
+          </div>
+          
+          <div style="font-size: 10px; color: #64748B; font-style: italic; line-height: 1.4;">
+              <b>Note:</b> Please present this original claim slip to claim evaluation status updates, assessment findings, and approved permits. Xerox or digital snapshots are subject to verification.
+          </div>
+      </div>
+      """
+      st.markdown(slip_html, unsafe_allow_html=True)
+      st.markdown("<br>", unsafe_allow_html=True)
+      
+      col_p1, col_p2, col_p3 = st.columns([1, 2, 1])
+      with col_p2:
+        if st.button("🖨️ Print Receiving Claim Slip", type="primary"):
+          st.components.v1.html(
+              """
+              <script>
+                  window.parent.print();
+              </script>
+              """,
+              height=0,
           )
-        st.rerun()
-
-    st.markdown("<br>", unsafe_allow_html=True)
-    
-    # --- Full 4-Column Admin Download Suite ---
-    col_f1, col_f2, col_f3, col_f4 = st.columns(4)
-
-    # 1. Official Application Form
-    with col_f1:
-      form_key = current_row.get("Form_Key", "")
-      if pd.notna(form_key) and form_key:
-        form_url = get_r2_download_link(str(form_key))
-        if form_url:
-          btn_html = f'<a href="{form_url}" target="_blank"><button style="background:#006A35; color:white; border:none; padding:12px 10px; border-radius:8px; font-weight:700; cursor:pointer; width:100%; font-size:12px;">Download Application Form</button></a>'
-          st.markdown(btn_html, unsafe_allow_html=True)
-      else:
-        st.info("No Form attached")
-
-    # 2. Engineering Plans
-    with col_f2:
-      plans_key = current_row.get("Plans_Key", "")
-      if pd.notna(plans_key) and plans_key:
-        plans_url = get_r2_download_link(str(plans_key))
-        if plans_url:
-          btn_html = f'<a href="{plans_url}" target="_blank"><button style="background:#0A2540; color:white; border:none; padding:12px 10px; border-radius:8px; font-weight:700; cursor:pointer; width:100%; font-size:12px;">Download Engineering Plans</button></a>'
-          st.markdown(btn_html, unsafe_allow_html=True)
-      else:
-        st.info("No Plans attached")
-
-    # 3. Structural Computations
-    with col_f3:
-      comp_key = current_row.get("Computations_Key", "")
-      if pd.notna(comp_key) and str(comp_key).strip():
-        comp_url = get_r2_download_link(str(comp_key))
-        if comp_url:
-          btn_html = f'<a href="{comp_url}" target="_blank"><button style="background:#D97706; color:white; border:none; padding:12px 10px; border-radius:8px; font-weight:700; cursor:pointer; width:100%; font-size:12px;">Download Computations</button></a>'
-          st.markdown(btn_html, unsafe_allow_html=True)
-      else:
-        st.info("No Computations")
-
-    # 4. Environmental Clearances / ZIP Package
-    with col_f4:
-      clear_key = current_row.get("Clearances_Key", "")
-      if pd.notna(clear_key) and str(clear_key).strip():
-        clear_url = get_r2_download_link(str(clear_key))
-        if clear_url:
-          btn_html = f'<a href="{clear_url}" target="_blank"><button style="background:#4F46E5; color:white; border:none; padding:12px 10px; border-radius:8px; font-weight:700; cursor:pointer; width:100%; font-size:12px;">Download Clearances / ZIP</button></a>'
-          st.markdown(btn_html, unsafe_allow_html=True)
-      else:
-        st.info("No Clearances")
 
   st.markdown("---")
   csv_bytes = edited_df.to_csv(index=False).encode("utf-8")
@@ -798,7 +887,6 @@ def render_public_submission_form(module_name: str) -> None:
     )
     tin = col_b.text_input("Taxpayer Identification No. (TIN) *")
 
-    # --- Country Code Flag Selector & Mobile Input ---
     col_c, col_d1, col_d2 = st.columns([2, 1, 2])
     enterprise_name = col_c.text_input(
         "Registered Enterprise Name (if applicable)"
@@ -898,17 +986,14 @@ def render_public_submission_form(module_name: str) -> None:
       active_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
       auto_ref_no = f"BEZA-{datetime.now().strftime('%Y%m%d%H%M%S')}"
 
-      # 1. Upload Form
       safe_form_name = sanitize_filename(uploaded_application_form.name)
       form_key = f"uploads/{auto_ref_no}_form_{safe_form_name}"
       form_uploaded = upload_file_to_r2(uploaded_application_form, form_key)
 
-      # 2. Upload Plans
       safe_plans_name = sanitize_filename(uploaded_plans.name)
       plans_key = f"uploads/{auto_ref_no}_plans_{safe_plans_name}"
       plans_uploaded = upload_file_to_r2(uploaded_plans, plans_key)
 
-      # 3. Upload Optional Computations
       comp_file_name = ""
       comp_key = ""
       if uploaded_computations:
@@ -917,7 +1002,6 @@ def render_public_submission_form(module_name: str) -> None:
         upload_file_to_r2(uploaded_computations, comp_key)
         comp_file_name = uploaded_computations.name
 
-      # 4. Upload Optional Clearances (supports .zip)
       clear_file_name = ""
       clear_key = ""
       if uploaded_clearances:
@@ -982,7 +1066,6 @@ def render_public_submission_form(module_name: str) -> None:
 render_header()
 selected_form = render_sidebar()
 
-# --- Guidelines & Pre-Check Gateway Screen ---
 if not st.session_state.admin_authenticated and not st.session_state.accepted_guidelines:
   st.markdown(
       '<div class="module-header">🏛️ BEZA Electronic Permitting Portal — Terms &'
@@ -1063,7 +1146,6 @@ if not st.session_state.admin_authenticated and not st.session_state.accepted_gu
 
   st.stop()
 
-# --- Main Routing Controller (Post-Guidelines or Admin) ---
 if st.session_state.admin_authenticated:
   render_admin_dashboard()
 else:
