@@ -1,7 +1,7 @@
 """
 Bangsamoro Economic Zone Authority (BEZA) - Electronic Permitting & E-Services Portal
 Office of the Building Official | RA 11032 ARTA Compliant
-One-Stop Shop Inter-Agency Tracking & Real-Time Active Timestamp Architecture
+One-Stop Shop Inter-Agency Tracking & CAD/DWG Engineering Package Architecture
 """
 
 from datetime import datetime
@@ -374,9 +374,7 @@ def render_sidebar() -> str:
         if not match.empty:
           row = match.iloc[0]
           status = row.get("Status", "Under Evaluation")
-          current_stage = row.get(
-              "Current_Agency_Stage", AGENCY_STAGES[0]
-          )
+          current_stage = row.get("Current_Agency_Stage", AGENCY_STAGES[0])
           timestamp_filled = row.get("Timestamp", "N/A")
 
           badge_class = "badge-eval"
@@ -548,7 +546,6 @@ def render_admin_dashboard() -> None:
         unsafe_allow_html=True,
     )
   with col_info2:
-    # Update Inter-Agency Location Stage
     current_stage = current_row.get("Current_Agency_Stage", AGENCY_STAGES[0])
     new_stage = st.selectbox(
         "Update Current Agency / Processing Stage",
@@ -604,16 +601,21 @@ def render_admin_dashboard() -> None:
   with col_f2:
     plans_path = current_row.get("Plans_Path", "")
     if isinstance(plans_path, str) and os.path.exists(plans_path):
+      file_ext = (
+          "application/octet-stream"
+          if plans_path.endswith(".dwg")
+          else "application/pdf"
+      )
       with open(plans_path, "rb") as f:
         st.download_button(
-            label="📥 Download Engineering Plans Package",
+            label="📥 Download Engineering Plans / CAD Package",
             data=f,
             file_name=os.path.basename(plans_path),
-            mime="application/pdf",
+            mime=file_ext,
             key=f"dl_plans_{selected_idx}",
         )
     else:
-      st.info("Engineering plans file not found on server storage.")
+      st.info("Engineering plans/CAD file not found on server storage.")
 
   st.markdown("---")
   st.markdown("### ⚙️ Edit / Delete Entry")
@@ -675,7 +677,7 @@ def render_admin_dashboard() -> None:
 # 8. PORTAL VIEW 1: PUBLIC SUBMISSION FORM
 # ==========================================
 def render_public_submission_form(module_name: str) -> None:
-  """Renders the secure applicant submission form for public filers."""
+  """Renders the secure applicant submission form supporting PDF and DWG CAD packages."""
   st.markdown(
       f'<div class="module-header">Active Module: <b>{module_name}</b></div>',
       unsafe_allow_html=True,
@@ -686,8 +688,8 @@ def render_public_submission_form(module_name: str) -> None:
       <div class="info-card">
           <b>📌 One-Stop Shop Workflow Instructions:</b><br>
           1. Download the official blank PDF template from the sidebar document center.<br>
-          2. Complete the form and compile your required engineering plans and technical documents.<br>
-          3. Transmit your complete digital package below. <b>BEZA OBO will coordinate directly on your behalf</b> with inter-agency partners (MENRE, MOLE, and BFP).
+          2. Complete the form and compile your required engineering plans and technical drawings (PDF or AutoCAD .dwg format).<br>
+          3. Transmit your complete digital package below. <b>BEZA OBO coordinates directly on your behalf</b> with inter-agency partners (MENRE, MOLE, and BFP).
       </div>
       """,
       unsafe_allow_html=True,
@@ -753,7 +755,7 @@ def render_public_submission_form(module_name: str) -> None:
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown(
         '<div class="section-header">📂 3. Technical Document Attachments (PDF /'
-        " CAD Packages)</div>",
+        " CAD .dwg Packages)</div>",
         unsafe_allow_html=True,
     )
 
@@ -762,8 +764,11 @@ def render_public_submission_form(module_name: str) -> None:
       uploaded_application_form = st.file_uploader(
           "Upload Accomplished & Signed Official Form (PDF) *", type=["pdf"]
       )
+      # Updated to support both PDF and AutoCAD .dwg engineering drawings
       uploaded_plans = st.file_uploader(
-          "Upload Signed & Sealed Engineering Plans (PDF) *", type=["pdf"]
+          "Upload Signed & Sealed Engineering Plans / CAD Drawings (PDF or"
+          " .dwg) *",
+          type=["pdf", "dwg"],
       )
 
     with up_col2:
@@ -793,10 +798,9 @@ def render_public_submission_form(module_name: str) -> None:
     ):
       st.error(
           "⚠️ Incomplete Submission: Please fill out all required fields (*)"
-          " and attach required PDF files."
+          " and attach required files (Form & Plans/DWG)."
       )
     else:
-      # Capture exact active submission timestamp down to the second
       active_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
       auto_ref_no = f"BEZA-{datetime.now().strftime('%Y%m%d%H%M%S')}"
 
@@ -835,27 +839,4 @@ def render_public_submission_form(module_name: str) -> None:
       }
 
       df_new = pd.DataFrame(sub_data)
-      df_existing = load_submissions(CSV_FILE)
-      df_combined = pd.concat([df_existing, df_new], ignore_index=True)
-
-      if save_submissions(df_combined, CSV_FILE):
-        st.success(
-            f"✅ **Transmission Successful!** Your application package has been"
-            f" received by BEZA One-Stop Shop.\n\n"
-            f"⏱️ **Active Submission Timestamp:** `{active_timestamp}`\n"
-            f"📌 **Tracking Reference No.:** `{auto_ref_no}`\n"
-            f"📍 **Current Document Location:** `{AGENCY_STAGES[0]}`\n\n"
-            f"🏗️ **Declared Area:** {floor_area:,.2f} sq. m. | 💰 **Estimated"
-            f" Cost:** ₱{estimated_cost:,.2f}\n\n"
-            "*(BEZA OBO will route and coordinate your documents with MENRE, MOLE, and BFP on your behalf.)*"
-        )
-        st.balloons()
-
-
-# ==========================================
-# 9. MAIN ROUTING CONTROLLER
-# ==========================================
-if st.session_state.admin_authenticated:
-  render_admin_dashboard()
-else:
-  render_public_submission_form(selected_form)
+      df_existing = load_submissions(CSV_FILE
