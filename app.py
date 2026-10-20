@@ -1,7 +1,7 @@
 """
 Bangsamoro Economic Zone Authority (BEZA) - Electronic Permitting & E-Services Portal
 Office of the Building Official | RA 11032 ARTA Compliant
-Cloudflare R2 Object Storage Integration & One-Stop Shop Inter-Agency Tracking
+One-Stop Shop Inter-Agency Tracking
 """
 
 from datetime import datetime
@@ -19,15 +19,19 @@ import streamlit as st
 # ==========================================
 CSV_FILE: str = "submissions.csv"
 LOGO_FILENAME: str = "BEZA-LOGO-Copy-300x300.png"
-BUCKET_NAME: str = "beza-permits-bucket"  # Change this to your created R2 bucket name
+BUCKET_NAME: str = "beza-permits-bucket"
 
-# Cloudflare R2 S3-Compatible Credentials (from your generated token)
-R2_ENDPOINT_URL: str = (
-    "https://2859e7a87dd0372ba85ff9d2df8e22c8.r2.cloudflarestorage.com"
+# Cloudflare R2 S3-Compatible Credentials (safely loaded from Streamlit TOML secrets)
+R2_ENDPOINT_URL: str = st.secrets.get(
+    "R2_ENDPOINT_URL",
+    "https://2859e7a87dd0372ba85ff9d2df8e22c8.r2.cloudflarestorage.com",
 )
-R2_ACCESS_KEY_ID: str = "097eb8d93c2616480e6dc340c3278dc1"
-R2_SECRET_ACCESS_KEY: str = (
-    "dc41ed19d96f41dc3fa4d806e6cb85c97beb0f39430f93553c7ca3745a24d37"
+R2_ACCESS_KEY_ID: str = st.secrets.get(
+    "R2_ACCESS_KEY_ID", "097eb8d93c2616480e6dc340c3278dc1"
+)
+R2_SECRET_ACCESS_KEY: str = st.secrets.get(
+    "R2_SECRET_ACCESS_KEY",
+    "dc41ed19d96f41dc3fa4d806e6cb85c97beb0f39430f93553c7ca3745a24d37",
 )
 
 AGENCY_STAGES: List[str] = [
