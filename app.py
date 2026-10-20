@@ -753,16 +753,54 @@ def render_admin_dashboard() -> None:
               background-color: #ffffff;
               color: #0F172A;
               margin: 0;
-              padding: 10px;
+              padding: 15px;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
           }}
           .printable-slip-card {{
               background: #FFFFFF;
               border: 2px dashed #006A35;
               padding: 24px;
               border-radius: 10px;
-              max-width: 600px;
-              margin: 0 auto;
+              width: 100%;
+              max-width: 580px;
               box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+              box-sizing: border-box;
+          }}
+          .print-btn {{
+              margin-top: 20px;
+              background: linear-gradient(135deg, #006A35 0%, #004D26 100%);
+              color: white;
+              font-weight: 700;
+              border-radius: 8px;
+              border: none;
+              padding: 12px 24px;
+              cursor: pointer;
+              box-shadow: 0 4px 12px rgba(0, 106, 53, 0.25);
+              font-family: 'Plus Jakarta Sans', sans-serif;
+              font-size: 14px;
+              width: 100%;
+              max-width: 580px;
+          }}
+          .print-btn:hover {{
+              opacity: 0.9;
+          }}
+          @media print {{
+              body {{
+                  padding: 0;
+                  background: white;
+              }}
+              .print-btn {{
+                  display: none;
+              }}
+              .printable-slip-card {{
+                  border: 2px solid #006A35;
+                  box-shadow: none;
+                  margin: 0;
+                  max-width: 100%;
+                  width: 100%;
+              }}
           }}
       </style>
       </head>
@@ -810,25 +848,14 @@ def render_admin_dashboard() -> None:
               <b>Note:</b> Please present this original claim slip to claim evaluation status updates, assessment findings, and approved permits. Xerox or digital snapshots are subject to verification.
           </div>
       </div>
+      
+      <button class="print-btn" onclick="window.print()">🖨️ Print Receiving Claim Slip</button>
       </body>
       </html>
       """
       
-      # FIX: Rendered cleanly using st.components.v1.html to prevent raw text tags
-      st.components.v1.html(slip_html, height=400, scrolling=False)
-      st.markdown("<br>", unsafe_allow_html=True)
-      
-      col_p1, col_p2, col_p3 = st.columns([1, 2, 1])
-      with col_p2:
-        if st.button("🖨️ Print Receiving Claim Slip", type="primary"):
-          st.components.v1.html(
-              """
-              <script>
-                  window.parent.print();
-              </script>
-              """,
-              height=0,
-          )
+      # FIX: Rendered with integrated component-level print trigger to isolate print output to 1 page
+      st.components.v1.html(slip_html, height=520, scrolling=False)
 
   st.markdown("---")
   csv_bytes = edited_df.to_csv(index=False).encode("utf-8")
