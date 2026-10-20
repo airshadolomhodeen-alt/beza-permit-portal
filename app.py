@@ -525,11 +525,102 @@ def render_sidebar() -> str:
   return selected_form
 
 
+# ==========================================
+# 5. GUIDELINES & PRE-CHECK GATEWAY
+# ==========================================
+if "accepted_guidelines" not in st.session_state:
+  st.session_state.accepted_guidelines = False
+
+if not st.session_state.admin_authenticated and not st.session_state.accepted_guidelines:
+  st.markdown(
+      '<div class="module-header">🏛️ BEZA Electronic Permitting Portal — Terms &'
+      " Guidelines</div>",
+      unsafe_allow_html=True,
+  )
+
+  st.markdown(
+      """
+    <div class="info-card" style="background-color: #F8FAFC; border: 1px solid #CBD5E1; color: #0F172A !important;">
+        <b>⚠️ IMPORTANT NOTICE TO ALL APPLICANTS:</b><br>
+        Before proceeding with your electronic submission under the National Building Code (NBC)[cite: 7], please read and understand the official compliance guidelines below. Click <b>"Continue to Portal"</b> at the bottom to unlock the submission forms.
+    </div>
+    """,
+      unsafe_allow_html=True,
+  )
+
+  # Official Guidelines Container (Rendered from the official BEZA Word Document)
+  st.markdown(
+      """
+    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; padding: 24px; border-radius: 12px; max-height: 450px; overflow-y: scroll; margin-bottom: 20px; font-size: 13px; line-height: 1.6; color: #0F172A;">
+        <h3 style="color: #0A2540; margin-top: 0;">GUIDELINES IN THE SUBMISSION OF APPLICATIONS FOR PERMITS UNDER THE NATIONAL BUILDING CODE (NBC):[cite: 7]</h3>
+        
+        <b style="color: #006A35;">A. PRE-CONSTRUCTION STAGE[cite: 7]</b>
+        <ul>
+            <li>All applications for permits under the National Building Code (NBC)[cite: 7] – building, sanitary/plumbing, fencing, electronics, electrical, and mechanical must be in the BEZA company's complete registered company name (as indicated in the BEZA Registration Certificate)[cite: 7].</li>
+            <li>All applications must be signed by the company owner or authorized representative (in case of a representative, a secretary certificate or authorization letter from the owner is required)[cite: 7]. Printed name and position of signatory must be indicated in the plans[cite: 7].</li>
+            <li>All applications must be signed and sealed by the required professional with valid PRC license and updated PTR[cite: 7]. Clear copy of PRC and PTR must be submitted[cite: 7]. Dry seal in all plans and documents must be clear and recognizable[cite: 7].</li>
+            <li>If the proposed project has several components - civil, sanitary/plumbing, fencing, electrical and mechanical, the same project title will be used in all the plans and documents to be submitted[cite: 7].</li>
+            <li>All plans and documents of the project components must be submitted at the same time – partial submissions will not be accepted[cite: 7].</li>
+            <li>Required plans are 2 standard size (20"x30") and 1 A3 size[cite: 7].</li>
+            <li>Plans must be drawn in scale as required under the NBC[cite: 7] or the biggest possible scale in a 20x30 sheet[cite: 7]. If fitting the entire layout in a 20x30 sheet will still result to a smaller scale - sectional details must be provided in scale 1:100[cite: 7]. Scale used must be indicated[cite: 7].</li>
+            <li>All drawings must have gridlines and dimensions[cite: 7].</li>
+            <li>Site development plans must be drawn in scale 1:100 or biggest possible scale in a 20x30 sheet[cite: 7].</li>
+            <li>Project location plans (in case of interior works and installation) must be the floor plan of the entire floor where the project will be implemented[cite: 7].</li>
+            <li>As indicated in the checklist of requirements, all pages of the structural/electrical computation, detailed material and cost estimate, and technical specification must have the BEZA company's name, complete project title (as in the plans) and location[cite: 7].</li>
+            <li>Technical Specification must contain not only the list of materials to be used but must enumerate/state Codes/Publications/Standards to be used as reference in the project, method of execution, testing etc[cite: 7].</li>
+            <li>In case of company leasing from BEZA facilities – the location will be the lessor's bldg. and unit no. and BEZA zone or IT Site (e.g., Unit 1 ABCEDEF Building, Alphabet St. Laguna Technopark)[cite: 7]. For IT enterprises, e.g., Unit 2301 23rd floor XYZ Bldg. Makati, must be indicated in the plans and all documents[cite: 7].</li>
+            <li>For IT Enterprises applying for building permit, floor plans with furniture layout must indicate width of aisles/walkways and distance back to back of chairs with notation that distances indicated in plans are when seats are occupied[cite: 7].</li>
+            <li>In case of erasures, notations, changes, or any paper pasted on the plans - all must be properly countersigned and noted by the signing professional of the page or sheet[cite: 7].</li>
+            <li>Only complete and complying documents will be accepted. – No plan or document will be accepted for safekeeping[cite: 7].</li>
+        </ul>
+
+        <b style="color: #006A35;">B. POST-CONSTRUCTION STAGE[cite: 7]</b>
+        <ul>
+            <li>After completion of work and prior to use/occupancy and operation, BEZA Registered Enterprise must secure Occupancy Permit and Electrical and Mechanical Permit to Operate[cite: 7]. Must submit requirements as per checklist[cite: 7].</li>
+            <li>All plans must be labeled AS-BUILT as of date (month & year) and the Project Title must be the same as in the proposed plan (used in the pre-construction permit applications)[cite: 7].</li>
+            <li>The plans and Certificates of Completion must be signed and sealed by the same designer engineer who signed the application form and proposed plans[cite: 7].</li>
+            <li>The plans must be signed and sealed by both the Designer and Project-in-Charge[cite: 7].</li>
+            <li>Only complete and complying documents will be accepted. – No partial submission will be allowed[cite: 7].</li>
+        </ul>
+
+        <hr style="border: none; border-top: 1px solid #E2E8F0; margin: 15px 0;">
+        <p style="font-weight: 700; color: #92400E;">PROOF OF ACCEPTANCE OF APPLICATION IS A CLAIM SLIP with application reference no. Only the original copy of the claim slip can be used to claim assessments, permits, and certificates. (Xerox and fax copies will not be honored)[cite: 7]</p>
+    </div>
+    """,
+      unsafe_allow_html=True,
+  )
+
+  # Agreement Form & Continue Button
+  with st.form("guidelines_agreement_form"):
+    agreed = st.checkbox(
+        "I have read, understood, and agree to comply with all BEZA pre-construction"
+        " and post-construction guidelines stated above. *"
+    )
+    st.markdown("<br>", unsafe_allow_html=True)
+    proceed_btn = st.form_submit_button(
+        "🚀 I Have Read and Agree — Continue to Portal"
+    )
+
+  if proceed_btn:
+    if agreed:
+      st.session_state.accepted_guidelines = True
+      st.success("Guidelines accepted! Loading portal...")
+      st.rerun()
+    else:
+      st.error(
+          "⚠️ You must check the agreement box to confirm you have read the"
+          " guidelines before proceeding to the application portal."
+      )
+
+  st.stop()  # Halts execution until guidelines are accepted
+
+
+# Load selected form from sidebar controller
 selected_form = render_sidebar()
 
 
 # ==========================================
-# 5. ADMIN REVIEW & ROUTING DASHBOARD
+# 6. ADMIN REVIEW & ROUTING DASHBOARD
 # ==========================================
 def render_admin_dashboard() -> None:
   st.markdown(
@@ -759,7 +850,7 @@ def render_admin_dashboard() -> None:
 
 
 # ==========================================
-# 6. PUBLIC SUBMISSION FORM
+# 7. PUBLIC SUBMISSION FORM
 # ==========================================
 def render_public_submission_form(module_name: str) -> None:
   st.markdown(
@@ -987,7 +1078,7 @@ def render_public_submission_form(module_name: str) -> None:
 
 
 # ==========================================
-# 7. MAIN ROUTING CONTROLLER
+# 8. MAIN ROUTING CONTROLLER
 # ==========================================
 if st.session_state.admin_authenticated:
   render_admin_dashboard()
