@@ -1,6 +1,7 @@
 """
 Bangsamoro Economic Zone Authority (BEZA) - Electronic Permitting & E-Services Portal
 Office of the Building Official | RA 11032 ARTA Compliant
+One-Stop Shop Inter-Agency Tracking & Real-Time Active Timestamp Architecture
 """
 
 from datetime import datetime
@@ -17,6 +18,15 @@ import streamlit as st
 UPLOAD_DIR: str = "uploads"
 CSV_FILE: str = "submissions.csv"
 LOGO_FILENAME: str = "BEZA-LOGO-Copy-300x300.png"
+
+AGENCY_STAGES: List[str] = [
+    "BEZA - Office of the Building Official (Intake & Pre-Check)",
+    "MENRE - Ministry of Environment, Natural Resources & Energy",
+    "MOLE - Ministry of Labor and Employment",
+    "BFP - Bureau of Fire Protection (Fire Safety Evaluation)",
+    "BEZA OBO - Final Review & Permit Issuance",
+    "Approved & Ready for Release",
+]
 
 REQUIRED_COLUMNS: List[str] = [
     "Timestamp",
@@ -37,6 +47,7 @@ REQUIRED_COLUMNS: List[str] = [
     "Plans_File",
     "Plans_Path",
     "Status",
+    "Current_Agency_Stage",
 ]
 
 FILENAME_MAP: Dict[str, str] = {
@@ -73,12 +84,11 @@ st.set_page_config(
 )
 
 # ==========================================
-# 2. ADVANCED ENTERPRISE CSS INJECTION (10/10 VISUAL DESIGN)
+# 2. ADVANCED ENTERPRISE CSS INJECTION
 # ==========================================
 st.markdown(
     """
     <style>
-        /* Import Professional Typography */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
         html, body, [class*="css"] {
@@ -86,14 +96,12 @@ st.markdown(
             color: #1E293B;
         }
 
-        /* Main Container Padding & Background */
         .main .block-container {
             padding-top: 1.5rem;
             padding-bottom: 3rem;
             max-width: 1280px;
         }
 
-        /* Executive Header Banner */
         .hero-banner {
             background: linear-gradient(135deg, #0A2540 0%, #006A35 100%);
             padding: 24px 30px;
@@ -131,7 +139,6 @@ st.markdown(
             color: #FFC72C;
         }
 
-        /* Module Title Ribbon */
         .module-header {
             background: #F1F5F9;
             border-left: 5px solid #006A35;
@@ -143,7 +150,6 @@ st.markdown(
             margin-bottom: 15px;
         }
 
-        /* Instruction Card */
         .info-card {
             background-color: #EFF6FF;
             border: 1px solid #BFDBFE;
@@ -155,7 +161,6 @@ st.markdown(
             margin-bottom: 20px;
         }
 
-        /* Form Container Styling */
         div[data-testid="stForm"] {
             background: #FFFFFF;
             border: 1px solid #E2E8F0;
@@ -164,7 +169,6 @@ st.markdown(
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
         }
 
-        /* Section Headers inside forms */
         .section-header {
             font-size: 15px;
             font-weight: 700;
@@ -173,18 +177,13 @@ st.markdown(
             margin-bottom: 15px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
         }
 
-        /* Sidebar Styling */
         section[data-testid="stSidebar"] {
             background-color: #F8FAFC;
             border-right: 1px solid #E2E8F0;
         }
         
-        /* Custom Buttons */
         div.stButton > button[kind="primary"], .stFormSubmitButton > button {
             background: linear-gradient(135deg, #006A35 0%, #004D26 100%) !important;
             color: white !important;
@@ -192,17 +191,10 @@ st.markdown(
             border-radius: 6px !important;
             border: none !important;
             padding: 10px 24px !important;
-            transition: all 0.2s ease !important;
             box-shadow: 0 4px 10px rgba(0, 106, 53, 0.2) !important;
             width: 100%;
         }
-        div.stButton > button[kind="primary"]:hover, .stFormSubmitButton > button:hover {
-            background: linear-gradient(135deg, #005028 0%, #003319 100%) !important;
-            box-shadow: 0 6px 15px rgba(0, 106, 53, 0.3) !important;
-            transform: translateY(-1px);
-        }
 
-        /* Stat Metrics Cards */
         .metric-card {
             background: #FFFFFF;
             border: 1px solid #E2E8F0;
@@ -224,7 +216,6 @@ st.markdown(
             text-transform: uppercase;
         }
 
-        /* Status Badges */
         .badge {
             padding: 4px 10px;
             border-radius: 12px;
@@ -236,7 +227,6 @@ st.markdown(
         .badge-approved { background: #D1FAE5; color: #065F46; border: 1px solid #6EE7B7; }
         .badge-pending { background: #FEE2E2; color: #991B1B; border: 1px solid #FCA5A5; }
 
-        /* Hide Streamlit Standard Header/Footer for Cleanliness */
         #MainMenu {visibility: hidden;}
         footer {visibility: hidden;}
     </style>
@@ -290,6 +280,8 @@ def load_submissions(csv_path: str) -> pd.DataFrame:
       for col in missing_cols:
         if col == "Status":
           df[col] = "Under Evaluation"
+        elif col == "Current_Agency_Stage":
+          df[col] = AGENCY_STAGES[0]
         else:
           df[col] = None
     return df
@@ -336,8 +328,8 @@ def render_header() -> None:
           <div>{logo_html}</div>
           <div>
               <div class="hero-title">BANGSAMORO ECONOMIC ZONE AUTHORITY</div>
-              <div class="hero-subtitle">Office of the Building Official — Electronic Permitting & E-Services Portal</div>
-              <div class="arta-badge">⚡ RA 11032 ARTA Compliant • Zero-Contact Processing</div>
+              <div class="hero-subtitle">Office of the Building Official — One-Stop Shop E-Permitting Portal</div>
+              <div class="arta-badge">⚡ RA 11032 ARTA Compliant • Inter-Agency Coordination Gateway</div>
           </div>
       </div>
       """,
@@ -357,10 +349,10 @@ render_header()
 
 
 # ==========================================
-# 6. SIDEBAR NAVIGATION & GATEWAY
+# 6. SIDEBAR NAVIGATION & ONE-STOP TRACKER
 # ==========================================
 def render_sidebar() -> str:
-  """Renders the sidebar navigation, tracking tool, document center, and admin gateway."""
+  """Renders the sidebar navigation, live tracking lookup, document center, and admin login."""
   with st.sidebar:
     if os.path.exists(LOGO_FILENAME):
       st.image(LOGO_FILENAME, width=120)
@@ -371,7 +363,7 @@ def render_sidebar() -> str:
     )
 
     st.markdown("---")
-    st.markdown("### 🔍 Track Application Status")
+    st.markdown("### 🔍 Track Application Location")
     track_code = st.text_input(
         "Enter Tracking Ref. No.", placeholder="BEZA-2026..."
     )
@@ -382,6 +374,10 @@ def render_sidebar() -> str:
         if not match.empty:
           row = match.iloc[0]
           status = row.get("Status", "Under Evaluation")
+          current_stage = row.get(
+              "Current_Agency_Stage", AGENCY_STAGES[0]
+          )
+          timestamp_filled = row.get("Timestamp", "N/A")
 
           badge_class = "badge-eval"
           if status == "Approved":
@@ -392,8 +388,12 @@ def render_sidebar() -> str:
           st.markdown(
               f"""
               <div style="background:#FFFFFF; border:1px solid #E2E8F0; padding:12px; border-radius:8px; margin-top:8px;">
-                  <div style="font-size:12px; color:#64748B;">Tracking Status:</div>
-                  <div style="margin-top:4px;"><span class="badge {badge_class}">{status}</span></div>
+                  <div style="font-size:11px; color:#64748B;">Submitted At (Active Time):</div>
+                  <div style="font-size:12px; font-weight:700; color:#0F172A; margin-bottom:6px;">{timestamp_filled}</div>
+                  <div style="font-size:11px; color:#64748B;">Overall Status:</div>
+                  <div style="margin-top:2px; margin-bottom:6px;"><span class="badge {badge_class}">{status}</span></div>
+                  <div style="font-size:11px; color:#64748B;">📍 Current Agency Location:</div>
+                  <div style="font-size:12px; font-weight:600; color:#0A2540; margin-top:2px;">{current_stage}</div>
                   <hr style="margin:8px 0; border:none; border-top:1px solid #F1F5F9;">
                   <div style="font-size:12px;"><b>Owner:</b> {row['Owner_Name']}</div>
                   <div style="font-size:12px;"><b>Module:</b> {row['Module']}</div>
@@ -423,7 +423,7 @@ def render_sidebar() -> str:
       st.warning("Template file not found in repository.")
 
     st.markdown("---")
-    st.markdown("### 🔒 Official Gateway")
+    st.markdown("### 🔒 BEZA One-Stop Shop Admin")
 
     if st.session_state.admin_authenticated:
       st.success("Admin Session Active")
@@ -444,8 +444,8 @@ def render_sidebar() -> str:
 
     st.markdown("---")
     st.caption(
-        "BEZA Digital Portal v2.4 • Streamlined e-submission platform"
-        " engineered for technical evaluation."
+        "BEZA One-Stop Shop Portal • Coordinating inter-agency routing with"
+        " MENRE, MOLE, & BFP."
     )
 
   return selected_form
@@ -455,12 +455,12 @@ selected_form = render_sidebar()
 
 
 # ==========================================
-# 7. PORTAL VIEW 2: ADMIN REVIEW DASHBOARD
+# 7. PORTAL VIEW 2: ADMIN REVIEW & ROUTING DASHBOARD
 # ==========================================
 def render_admin_dashboard() -> None:
-  """Renders the administrative review dashboard with metrics and status controls."""
+  """Renders the administrative dashboard for managing applications and inter-agency routing."""
   st.markdown(
-      '<div class="module-header">🛡️ BEZA Official Evaluation & Review'
+      '<div class="module-header">🛡️ BEZA One-Stop Shop Inter-Agency Review'
       " Dashboard</div>",
       unsafe_allow_html=True,
   )
@@ -471,14 +471,13 @@ def render_admin_dashboard() -> None:
     st.info("No application submissions recorded in the database yet.")
     return
 
-  # Executive KPI Metrics Cards
   col_m1, col_m2, col_m3 = st.columns(3)
   with col_m1:
     st.markdown(
         f"""
         <div class="metric-card">
             <div class="metric-val">{len(df_submissions)}</div>
-            <div class="metric-lbl">Total Received Submissions</div>
+            <div class="metric-lbl">Total Submissions</div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -493,7 +492,7 @@ def render_admin_dashboard() -> None:
         f"""
         <div class="metric-card">
             <div class="metric-val">₱{total_est_cost:,.2f}</div>
-            <div class="metric-lbl">Declared Project Portfolio</div>
+            <div class="metric-lbl">Total Portfolio Value</div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -512,7 +511,7 @@ def render_admin_dashboard() -> None:
         f"""
         <div class="metric-card">
             <div class="metric-val" style="color: #D97706;">{pending_count}</div>
-            <div class="metric-lbl">Pending Technical Reviews</div>
+            <div class="metric-lbl">Active Processing Files</div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -523,13 +522,13 @@ def render_admin_dashboard() -> None:
   st.dataframe(df_submissions, use_container_width=True)
 
   st.markdown("---")
-  st.markdown("### 🔍 Inspect Record, Update Status & Downloads")
+  st.markdown("### 🔀 Inter-Agency Routing & Document Location Inspector")
 
   row_indices = list(range(len(df_submissions)))
   selected_idx = st.selectbox(
-      "Select Row Index to Inspect",
+      "Select Row Index to Inspect & Route",
       row_indices,
-      format_func=lambda x: f"Row {x} - {df_submissions.loc[x, 'Owner_Name']} ({df_submissions.loc[x, 'App_Ref_No']}) [{df_submissions.loc[x, 'Status']}]",
+      format_func=lambda x: f"Row {x} - {df_submissions.loc[x, 'Owner_Name']} [{df_submissions.loc[x, 'App_Ref_No']}] (Submitted: {df_submissions.loc[x, 'Timestamp']})",
   )
 
   current_row = df_submissions.loc[selected_idx]
@@ -539,18 +538,32 @@ def render_admin_dashboard() -> None:
     st.markdown(
         f"""
         <div style="background:#F8FAFC; border:1px solid #E2E8F0; padding:15px; border-radius:8px;">
-            <div style="font-size:14px; margin-bottom:4px;"><b>Applicant Name:</b> {current_row['Owner_Name']}</div>
-            <div style="font-size:14px; margin-bottom:4px;"><b>Tracking Ref:</b> <code>{current_row['App_Ref_No']}</code></div>
-            <div style="font-size:14px; margin-bottom:4px;"><b>Contact No:</b> {current_row['Contact_No']}</div>
-            <div style="font-size:14px;"><b>Module Category:</b> {current_row['Module']}</div>
+            <div style="font-size:13px; margin-bottom:4px;"><b>Active Timestamp:</b> <code>{current_row['Timestamp']}</code></div>
+            <div style="font-size:13px; margin-bottom:4px;"><b>Applicant Name:</b> {current_row['Owner_Name']}</div>
+            <div style="font-size:13px; margin-bottom:4px;"><b>Tracking Ref:</b> <code>{current_row['App_Ref_No']}</code></div>
+            <div style="font-size:13px; margin-bottom:4px;"><b>Contact No:</b> {current_row['Contact_No']}</div>
+            <div style="font-size:13px;"><b>Module Category:</b> {current_row['Module']}</div>
         </div>
         """,
         unsafe_allow_html=True,
     )
   with col_info2:
+    # Update Inter-Agency Location Stage
+    current_stage = current_row.get("Current_Agency_Stage", AGENCY_STAGES[0])
+    new_stage = st.selectbox(
+        "Update Current Agency / Processing Stage",
+        AGENCY_STAGES,
+        index=(
+            AGENCY_STAGES.index(current_stage)
+            if current_stage in AGENCY_STAGES
+            else 0
+        ),
+        key=f"agency_stage_{selected_idx}",
+    )
+
     current_status = current_row.get("Status", "Under Evaluation")
     new_status = st.selectbox(
-        "Update Application Status",
+        "Update Overall Status",
         ["Under Evaluation", "Approved", "Pending Requirements"],
         index=(
             ["Under Evaluation", "Approved", "Pending Requirements"].index(
@@ -562,10 +575,14 @@ def render_admin_dashboard() -> None:
         ),
         key=f"status_select_{selected_idx}",
     )
-    if new_status != current_status:
+
+    if new_stage != current_stage or new_status != current_status:
+      df_submissions.loc[selected_idx, "Current_Agency_Stage"] = new_stage
       df_submissions.loc[selected_idx, "Status"] = new_status
       save_submissions(df_submissions, CSV_FILE)
-      st.success(f"Status updated to **{new_status}** successfully!")
+      st.success(
+          f"✅ Updated agency route to **{new_stage}** successfully! Refreshing..."
+      )
       st.rerun()
 
   st.markdown("<br>", unsafe_allow_html=True)
@@ -667,10 +684,10 @@ def render_public_submission_form(module_name: str) -> None:
   st.markdown(
       """
       <div class="info-card">
-          <b>📌 Workflow Instructions:</b><br>
+          <b>📌 One-Stop Shop Workflow Instructions:</b><br>
           1. Download the official blank PDF template from the sidebar document center.<br>
-          2. Fill out and execute required signatures & seals with your licensed engineers.<br>
-          3. Upload the completed application form and engineering plans in the secure submission form below.
+          2. Complete the form and compile your required engineering plans and technical documents.<br>
+          3. Transmit your complete digital package below. <b>BEZA OBO will coordinate directly on your behalf</b> with inter-agency partners (MENRE, MOLE, and BFP).
       </div>
       """,
       unsafe_allow_html=True,
@@ -760,7 +777,7 @@ def render_public_submission_form(module_name: str) -> None:
 
     st.markdown("<br>", unsafe_allow_html=True)
     submitted = st.form_submit_button(
-        "🔒 Securely Transmit Application Package to BEZA"
+        "🔒 Securely Transmit Application Package to BEZA One-Stop Shop"
     )
 
   if submitted:
@@ -779,7 +796,9 @@ def render_public_submission_form(module_name: str) -> None:
           " and attach required PDF files."
       )
     else:
-      auto_ref_no = f"BEZA-{pd.Timestamp.now().strftime('%Y%m%d%H%M%S')}"
+      # Capture exact active submission timestamp down to the second
+      active_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+      auto_ref_no = f"BEZA-{datetime.now().strftime('%Y%m%d%H%M%S')}"
 
       safe_form_name = sanitize_filename(uploaded_application_form.name)
       form_filename = f"{auto_ref_no}_form_{safe_form_name}"
@@ -794,7 +813,7 @@ def render_public_submission_form(module_name: str) -> None:
         f.write(uploaded_plans.getbuffer())
 
       sub_data = {
-          "Timestamp": [pd.Timestamp.now()],
+          "Timestamp": [active_timestamp],
           "Module": [module_name],
           "App_Ref_No": [auto_ref_no],
           "Category": [proj_category],
@@ -812,6 +831,7 @@ def render_public_submission_form(module_name: str) -> None:
           "Plans_File": [uploaded_plans.name],
           "Plans_Path": [plans_path],
           "Status": ["Under Evaluation"],
+          "Current_Agency_Stage": [AGENCY_STAGES[0]],
       }
 
       df_new = pd.DataFrame(sub_data)
@@ -821,14 +841,13 @@ def render_public_submission_form(module_name: str) -> None:
       if save_submissions(df_combined, CSV_FILE):
         st.success(
             f"✅ **Transmission Successful!** Your application package has been"
-            f" successfully received.\n\n"
-            f"📌 **System-Generated Tracking Reference No.:** `{auto_ref_no}`\n"
-            f"📱 **SMS Dispatch Notice:** Confirmation logged for contact"
-            f" number `{contact_no}`.\n\n"
+            f" received by BEZA One-Stop Shop.\n\n"
+            f"⏱️ **Active Submission Timestamp:** `{active_timestamp}`\n"
+            f"📌 **Tracking Reference No.:** `{auto_ref_no}`\n"
+            f"📍 **Current Document Location:** `{AGENCY_STAGES[0]}`\n\n"
             f"🏗️ **Declared Area:** {floor_area:,.2f} sq. m. | 💰 **Estimated"
             f" Cost:** ₱{estimated_cost:,.2f}\n\n"
-            "*(Please save your tracking reference number to check your status"
-            " anytime via the sidebar lookup tool.)*"
+            "*(BEZA OBO will route and coordinate your documents with MENRE, MOLE, and BFP on your behalf.)*"
         )
         st.balloons()
 
