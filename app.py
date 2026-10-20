@@ -764,7 +764,6 @@ def render_public_submission_form(module_name: str) -> None:
       uploaded_application_form = st.file_uploader(
           "Upload Accomplished & Signed Official Form (PDF) *", type=["pdf"]
       )
-      # Updated to support both PDF and AutoCAD .dwg engineering drawings
       uploaded_plans = st.file_uploader(
           "Upload Signed & Sealed Engineering Plans / CAD Drawings (PDF or"
           " .dwg) *",
@@ -839,4 +838,27 @@ def render_public_submission_form(module_name: str) -> None:
       }
 
       df_new = pd.DataFrame(sub_data)
-      df_existing = load_submissions(CSV_FILE
+      df_existing = load_submissions(CSV_FILE)
+      df_combined = pd.concat([df_existing, df_new], ignore_index=True)
+
+      if save_submissions(df_combined, CSV_FILE):
+        st.success(
+            f"✅ **Transmission Successful!** Your application package has been"
+            f" received by BEZA One-Stop Shop.\n\n"
+            f"⏱️ **Active Submission Timestamp:** `{active_timestamp}`\n"
+            f"📌 **Tracking Reference No.:** `{auto_ref_no}`\n"
+            f"📍 **Current Document Location:** `{AGENCY_STAGES[0]}`\n\n"
+            f"🏗️ **Declared Area:** {floor_area:,.2f} sq. m. | 💰 **Estimated"
+            f" Cost:** ₱{estimated_cost:,.2f}\n\n"
+            "*(BEZA OBO will coordinate your documents with MENRE, MOLE, and BFP on your behalf.)*"
+        )
+        st.balloons()
+
+
+# ==========================================
+# 9. MAIN ROUTING CONTROLLER
+# ==========================================
+if st.session_state.admin_authenticated:
+  render_admin_dashboard()
+else:
+  render_public_submission_form(selected_form)
