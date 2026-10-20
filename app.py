@@ -1,8 +1,6 @@
 """
 Bangsamoro Economic Zone Authority (BEZA) - Electronic Permitting & E-Services Portal
 Office of the Building Official | RA 11032 ARTA Compliant
-Cloudflare R2 Storage & httpSMS Real-Time Notification Gateway Integration
-WrapPixel Professional Design System & High-Contrast UI
 """
 
 from datetime import datetime
@@ -110,64 +108,73 @@ st.set_page_config(
 )
 
 # ==========================================
-# 2. WRAPPIXEL-INSPIRED PROFESSIONAL CSS
+# 2. WRAPPIXEL EXECUTIVE HIGH-CONTRAST CSS
 # ==========================================
 st.markdown(
     """
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
+        /* Global Font & High Contrast */
         html, body, [class*="css"] {
             font-family: 'Plus Jakarta Sans', sans-serif;
             color: #0F172A !important;
         }
 
+        /* Top Page Alignment & Chrome Clean-Up */
         .main .block-container {
-            padding-top: 2rem;
-            padding-bottom: 4rem;
-            max-width: 1320px;
+            padding-top: 1rem !important;
+            padding-bottom: 3rem !important;
+            max-width: 1280px;
         }
+        
+        /* Completely Hide Streamlit Branding / Top Toolbar */
+        header[data-testid="stHeader"] {
+            display: none !important;
+        }
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+        div[data-testid="stDecoration"] {display: none;}
 
         /* WrapPixel Executive Hero Banner */
         .hero-banner {
             background: linear-gradient(135deg, #0A2540 0%, #006A35 100%);
-            padding: 28px 36px;
+            padding: 24px 32px;
             border-radius: 12px;
-            box-shadow: 0 10px 30px -5px rgba(0, 106, 53, 0.2);
+            box-shadow: 0 8px 24px -4px rgba(0, 106, 53, 0.25);
             color: #FFFFFF !important;
             display: flex;
             align-items: center;
-            gap: 24px;
-            margin-bottom: 30px;
+            gap: 20px;
+            margin-bottom: 24px;
             border-bottom: 4px solid #FFC72C;
         }
         .hero-title {
-            font-size: 26px;
+            font-size: 24px;
             font-weight: 800;
             letter-spacing: -0.5px;
             margin: 0;
             color: #FFFFFF !important;
         }
         .hero-subtitle {
-            font-size: 14px;
+            font-size: 13px;
             color: #E2E8F0 !important;
-            margin-top: 6px;
+            margin-top: 4px;
             font-weight: 500;
         }
         .arta-badge {
-            background: rgba(255, 255, 255, 0.15);
-            padding: 5px 12px;
-            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.18);
+            padding: 4px 10px;
+            border-radius: 16px;
             font-size: 11px;
             font-weight: 700;
             border: 1px solid rgba(255, 255, 255, 0.3);
             display: inline-block;
-            margin-top: 10px;
+            margin-top: 8px;
             color: #FFC72C !important;
-            letter-spacing: 0.3px;
         }
 
-        /* Module & Section Cards */
+        /* Module & Section Card Styling */
         .module-header {
             background: #F8FAFC;
             border-left: 6px solid #006A35;
@@ -194,13 +201,18 @@ st.markdown(
             margin-bottom: 24px;
         }
 
-        /* Form Container Styling */
+        /* High Contrast Labels for Cross-Platform Viewers */
+        label, .stSelectbox label, .stTextInput label, .stNumberInput label, .stFileUploader label, p, span {
+            color: #0F172A !important;
+            font-weight: 600 !important;
+        }
+
         div[data-testid="stForm"] {
             background: #FFFFFF;
             border: 1px solid #E2E8F0;
             border-radius: 12px;
-            padding: 30px;
-            box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+            padding: 28px;
+            box-shadow: 0 4px 16px rgba(15, 23, 42, 0.03);
         }
 
         .section-header {
@@ -213,12 +225,6 @@ st.markdown(
             letter-spacing: 0.8px;
             border-bottom: 2px solid #F1F5F9;
             padding-bottom: 8px;
-        }
-
-        /* High-Contrast Label & Text Fixes for Mobile/External Displays */
-        label, .stMultiSelect span, .stSelectbox label, .stTextInput label, .stNumberInput label, .stFileUploader label, p, span {
-            color: #0F172A !important;
-            font-weight: 600 !important;
         }
 
         section[data-testid="stSidebar"] {
@@ -270,9 +276,6 @@ st.markdown(
         .badge-eval { background: #FEF3C7; color: #92400E !important; border: 1px solid #FCD34D; }
         .badge-approved { background: #D1FAE5; color: #065F46 !important; border: 1px solid #6EE7B7; }
         .badge-pending { background: #FEE2E2; color: #991B1B !important; border: 1px solid #FCA5A5; }
-
-        #MainMenu {visibility: hidden;}
-        footer {visibility: hidden;}
     </style>
 """,
     unsafe_allow_html=True,
@@ -678,8 +681,8 @@ def render_admin_dashboard() -> None:
         st.markdown(
             f'<a href="{form_url}" target="_blank"><button'
             ' style="background:#006A35; color:white; border:none; padding:12px'
-            ' 20px; border-radius:8px; font-weight:700; cursor:pointer; width:100%;">📥'
-            " Download Application Form from Cloud</button></a>",
+            ' 20px; border-radius:8px; font-weight:700; cursor:pointer;'
+            ' width:100%;">📥 Download Application Form from Cloud</button></a>',
             unsafe_allow_html=True,
         )
     else:
@@ -693,8 +696,8 @@ def render_admin_dashboard() -> None:
         st.markdown(
             f'<a href="{plans_url}" target="_blank"><button'
             ' style="background:#0A2540; color:white; border:none; padding:12px'
-            ' 20px; border-radius:8px; font-weight:700; cursor:pointer; width:100%;">📥'
-            " Download Engineering Plans from Cloud</button></a>",
+            ' 20px; border-radius:8px; font-weight:700; cursor:pointer;'
+            ' width:100%;">📥 Download Engineering Plans from Cloud</button></a>',
             unsafe_allow_html=True,
         )
     else:
