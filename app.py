@@ -297,10 +297,8 @@ def get_r2_client():
       endpoint_url=R2_ENDPOINT_URL,
       aws_access_key_id=R2_ACCESS_KEY_ID,
       aws_secret_access_key=R2_SECRET_ACCESS_KEY,
-      region_name="auto",  # Cloudflare R2 requires region_name='auto'
-      config=Config(
-          signature_version="s3v4"
-      ),  # Explicitly force SigV4 to prevent authorization errors
+      region_name="auto",
+      config=Config(signature_version="s3v4"),
   )
 
 
@@ -703,7 +701,7 @@ def render_admin_dashboard() -> None:
 
     st.markdown("<br>", unsafe_allow_html=True)
     
-    # --- Full 4-Column Admin Download Suite ---
+    # --- Full 4-Column Admin Download Suite (Single-Line Strings) ---
     col_f1, col_f2, col_f3, col_f4 = st.columns(4)
 
     # 1. Official Application Form
@@ -712,14 +710,8 @@ def render_admin_dashboard() -> None:
       if pd.notna(form_key) and form_key:
         form_url = get_r2_download_link(str(form_key))
         if form_url:
-          st.markdown(
-              f'<a href="{form_url}" target="_blank"><button'
-              ' style="background:#006A35; color:white; border:none;'
-              " padding:12px 10px; border-radius:8px; font-weight:700;"
-              " cursor:pointer; width:100%; font-size:12px;">📥 Application"
-              " Form</button></a>",
-              unsafe_allow_html=True,
-          )
+          btn_html = f'<a href="{form_url}" target="_blank"><button style="background:#006A35; color:white; border:none; padding:12px 10px; border-radius:8px; font-weight:700; cursor:pointer; width:100%; font-size:12px;">Download Application Form</button></a>'
+          st.markdown(btn_html, unsafe_allow_html=True)
       else:
         st.info("No Form attached")
 
@@ -729,14 +721,8 @@ def render_admin_dashboard() -> None:
       if pd.notna(plans_key) and plans_key:
         plans_url = get_r2_download_link(str(plans_key))
         if plans_url:
-          st.markdown(
-              f'<a href="{plans_url}" target="_blank"><button'
-              ' style="background:#0A2540; color:white; border:none;'
-              " padding:12px 10px; border-radius:8px; font-weight:700;"
-              " cursor:pointer; width:100%; font-size:12px;">📥 Engineering"
-              " Plans</button></a>",
-              unsafe_allow_html=True,
-          )
+          btn_html = f'<a href="{plans_url}" target="_blank"><button style="background:#0A2540; color:white; border:none; padding:12px 10px; border-radius:8px; font-weight:700; cursor:pointer; width:100%; font-size:12px;">Download Engineering Plans</button></a>'
+          st.markdown(btn_html, unsafe_allow_html=True)
       else:
         st.info("No Plans attached")
 
@@ -746,14 +732,8 @@ def render_admin_dashboard() -> None:
       if pd.notna(comp_key) and str(comp_key).strip():
         comp_url = get_r2_download_link(str(comp_key))
         if comp_url:
-          st.markdown(
-              f'<a href="{comp_url}" target="_blank"><button'
-              ' style="background:#D97706; color:white; border:none;'
-              " padding:12px 10px; border-radius:8px; font-weight:700;"
-              " cursor:pointer; width:100%; font-size:12px;">📥 Structural"
-              " Computations</button></a>",
-              unsafe_allow_html=True,
-          )
+          btn_html = f'<a href="{comp_url}" target="_blank"><button style="background:#D97706; color:white; border:none; padding:12px 10px; border-radius:8px; font-weight:700; cursor:pointer; width:100%; font-size:12px;">Download Computations</button></a>'
+          st.markdown(btn_html, unsafe_allow_html=True)
       else:
         st.info("No Computations")
 
@@ -763,14 +743,8 @@ def render_admin_dashboard() -> None:
       if pd.notna(clear_key) and str(clear_key).strip():
         clear_url = get_r2_download_link(str(clear_key))
         if clear_url:
-          st.markdown(
-              f'<a href="{clear_url}" target="_blank"><button'
-              ' style="background:#4F46E5; color:white; border:none;'
-              " padding:12px 10px; border-radius:8px; font-weight:700;"
-              " cursor:pointer; width:100%; font-size:12px;">📥 Environmental"
-              " Clearances / ZIP</button></a>",
-              unsafe_allow_html=True,
-          )
+          btn_html = f'<a href="{clear_url}" target="_blank"><button style="background:#4F46E5; color:white; border:none; padding:12px 10px; border-radius:8px; font-weight:700; cursor:pointer; width:100%; font-size:12px;">Download Clearances / ZIP</button></a>'
+          st.markdown(btn_html, unsafe_allow_html=True)
       else:
         st.info("No Clearances")
 
