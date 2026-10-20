@@ -278,34 +278,6 @@ st.markdown(
         .badge-eval { background: #FEF3C7; color: #92400E !important; border: 1px solid #FCD34D; }
         .badge-approved { background: #D1FAE5; color: #065F46 !important; border: 1px solid #6EE7B7; }
         .badge-pending { background: #FEE2E2; color: #991B1B !important; border: 1px solid #FCA5A5; }
-
-        /* Printable Receiving Claim Slip Card Styling */
-        .printable-slip-card {
-            background: #FFFFFF;
-            border: 2px dashed #006A35;
-            padding: 24px;
-            border-radius: 10px;
-            font-family: 'Plus Jakarta Sans', monospace;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            max-width: 650px;
-            margin: 0 auto;
-        }
-        @media print {
-            body * {
-                visibility: hidden;
-            }
-            .printable-slip-card, .printable-slip-card * {
-                visibility: visible;
-            }
-            .printable-slip-card {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-                border: none;
-                box-shadow: none;
-            }
-        }
     </style>
 """,
     unsafe_allow_html=True,
@@ -771,6 +743,30 @@ def render_admin_dashboard() -> None:
       st.caption("This printable document represents the official file receipt by the BEZA Records Officer for the selected applicant.")
 
       slip_html = f"""
+      <!DOCTYPE html>
+      <html>
+      <head>
+      <style>
+          @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+          body {{
+              font-family: 'Plus Jakarta Sans', sans-serif;
+              background-color: #ffffff;
+              color: #0F172A;
+              margin: 0;
+              padding: 10px;
+          }}
+          .printable-slip-card {{
+              background: #FFFFFF;
+              border: 2px dashed #006A35;
+              padding: 24px;
+              border-radius: 10px;
+              max-width: 600px;
+              margin: 0 auto;
+              box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+          }}
+      </style>
+      </head>
+      <body>
       <div class="printable-slip-card">
           <div style="text-align: center; font-weight: 800; font-size: 14px; letter-spacing: 0.5px; color: #0F172A;">BANGSAMORO ECONOMIC ZONE AUTHORITY</div>
           <div style="text-align: center; font-size: 11px; font-weight: 700; color: #006A35; margin-bottom: 12px;">OFFICE OF THE BUILDING OFFICIAL — RECORDS & INTAKE SECTION</div>
@@ -814,9 +810,12 @@ def render_admin_dashboard() -> None:
               <b>Note:</b> Please present this original claim slip to claim evaluation status updates, assessment findings, and approved permits. Xerox or digital snapshots are subject to verification.
           </div>
       </div>
+      </body>
+      </html>
       """
-      # FIX: Added unsafe_allow_html=True so it renders cleanly instead of showing raw code tags
-      st.markdown(slip_html, unsafe_allow_html=True)
+      
+      # FIX: Rendered cleanly using st.components.v1.html to prevent raw text tags
+      st.components.v1.html(slip_html, height=400, scrolling=False)
       st.markdown("<br>", unsafe_allow_html=True)
       
       col_p1, col_p2, col_p3 = st.columns([1, 2, 1])
