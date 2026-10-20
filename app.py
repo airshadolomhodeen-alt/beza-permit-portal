@@ -1,7 +1,7 @@
 """
 Bangsamoro Economic Zone Authority (BEZA) - Electronic Permitting & E-Services Portal
 Office of the Building Official | RA 11032 ARTA Compliant
-One-Stop Shop Inter-Agency Tracking & CAD/DWG Engineering Package Architecture
+Cloudflare R2 Object Storage Integration & One-Stop Shop Inter-Agency Tracking
 """
 
 from datetime import datetime
@@ -9,15 +9,26 @@ import hashlib
 import os
 import re
 from typing import Any, Dict, List, Optional, Tuple
+import boto3
+from botocore.exceptions import ClientError
 import pandas as pd
 import streamlit as st
 
 # ==========================================
-# 1. CONSTANTS & CONFIGURATION
+# 1. CONSTANTS & CLOUDFLARE R2 CONFIGURATION
 # ==========================================
-UPLOAD_DIR: str = "uploads"
 CSV_FILE: str = "submissions.csv"
 LOGO_FILENAME: str = "BEZA-LOGO-Copy-300x300.png"
+BUCKET_NAME: str = "beza-permits-bucket"  # Change this to your created R2 bucket name
+
+# Cloudflare R2 S3-Compatible Credentials (from your generated token)
+R2_ENDPOINT_URL: str = (
+    "https://2859e7a87dd0372ba85ff9d2df8e22c8.r2.cloudflarestorage.com"
+)
+R2_ACCESS_KEY_ID: str = "097eb8d93c2616480e6dc340c3278dc1"
+R2_SECRET_ACCESS_KEY: str = (
+    "dc41ed19d96f41dc3fa4d806e6cb85c97beb0f39430f93553c7ca3745a24d37"
+)
 
 AGENCY_STAGES: List[str] = [
     "BEZA - Office of the Building Official (Intake & Pre-Check)",
@@ -43,9 +54,9 @@ REQUIRED_COLUMNS: List[str] = [
     "Materials",
     "Location",
     "Form_File",
-    "Form_Path",
+    "Form_Key",
     "Plans_File",
-    "Plans_Path",
+    "Plans_Key",
     "Status",
     "Current_Agency_Stage",
 ]
@@ -236,19 +247,46 @@ st.markdown(
 
 
 # ==========================================
-# 3. HELPER FUNCTIONS & UTILITIES
+# 3. CLOUDFLARE R2 & STORAGE UTILITIES
 # ==========================================
-def ensure_upload_directory(directory: str) -> None:
-  """Ensures that the designated secure file upload directory exists."""
+def get_r2_client():
+  """Initializes and returns the boto3 client for Cloudflare R2."""
+  return boto3.client(
+      "s3",
+      endpoint_url=R2_ENDPOINT_URL,
+      aws_access_key_id=R2_ACCESS_KEY_ID,
+      aws_secret_access_key=R2_SECRET_ACCESS_KEY,
+  )
+
+
+def upload_file_to_r2(file_obj, object_key: str) -> bool:
+  """Uploads a file-like object directly to Cloudflare R2."""
   try:
-    if not os.path.exists(directory):
-      os.makedirs(directory, exist_ok=True)
-  except Exception as e:
-    st.error(f"Critical Error: Failed to create upload directory. Details: {e}")
+    s3 = get_r2_client()
+    s3.upload_fileobj(file_obj, BUCKET_NAME, object_key)
+    return True
+  except ClientError as e:
+    st.error(f"❌ Cloud Storage Upload Error: {e}")
+    return False
+
+
+def get_r2_download_link(object_key: str, expiration: int = 3600) -> Optional[str]:
+  """Generates a secure presigned URL for downloading files from R2."""
+  try:
+    s3 = get_r2_client()
+    url = s3.generate_presigned_url(
+        "get_object",
+        Params={"Bucket": BUCKET_NAME, "Key": object_key},
+        ExpiresIn=expiration,
+    )
+    return url
+  except ClientError as e:
+    st.error(f"❌ Failed to generate secure download link: {e}")
+    return None
 
 
 def sanitize_filename(filename: str) -> str:
-  """Sanitizes uploaded filenames using pure Python standard library to prevent directory traversal."""
+  """Sanitizes uploaded filenames to prevent path traversal."""
   if not filename:
     return "unnamed_attachment.pdf"
   base_name = os.path.basename(filename)
@@ -257,19 +295,17 @@ def sanitize_filename(filename: str) -> str:
 
 
 def hash_string(input_str: str) -> str:
-  """Returns the SHA-256 cryptographic hash of a given string."""
   return hashlib.sha256(input_str.encode("utf-8")).hexdigest()
 
 
 def verify_admin_pin(entered_pin: str) -> bool:
-  """Verifies the entered admin PIN against stored secrets hash with secure fallback."""
   default_hash = hash_string("BEZA2026")
   stored_hash = st.secrets.get("ADMIN_PIN_HASH", default_hash)
   return hash_string(entered_pin) == stored_hash
 
 
 def load_submissions(csv_path: str) -> pd.DataFrame:
-  """Loads submissions CSV with schema validation and self-healing fallback."""
+  """Loads submissions CSV with schema validation."""
   if not os.path.exists(csv_path):
     return pd.DataFrame(columns=REQUIRED_COLUMNS)
 
@@ -286,14 +322,11 @@ def load_submissions(csv_path: str) -> pd.DataFrame:
           df[col] = None
     return df
   except Exception as e:
-    st.error(
-        f"⚠️ Warning: Submissions data store appears corrupt or locked. ({e})"
-    )
+    st.error(f"⚠️ Warning: Submissions data store issue. ({e})")
     return pd.DataFrame(columns=REQUIRED_COLUMNS)
 
 
 def save_submissions(df: pd.DataFrame, csv_path: str) -> bool:
-  """Safely writes the dataframe to CSV with exception handling."""
   try:
     df.to_csv(csv_path, index=False)
     return True
@@ -302,23 +335,21 @@ def save_submissions(df: pd.DataFrame, csv_path: str) -> bool:
     return False
 
 
-# ==========================================
-# 4. INITIALIZATION & SETUP
-# ==========================================
-ensure_upload_directory(UPLOAD_DIR)
-
 if "admin_authenticated" not in st.session_state:
   st.session_state.admin_authenticated = False
 
 
 # ==========================================
-# 5. POLISHED HEADER RENDERER
+# 4. HEADER & SIDEBAR
 # ==========================================
 def render_header() -> None:
-  """Renders an executive government header banner."""
   logo_html = ""
   if os.path.exists(LOGO_FILENAME):
-    logo_html = f'<img src="data:image/png;base64,{get_base64_image(LOGO_FILENAME)}" style="height: 65px; width: auto; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">'
+    with open(LOGO_FILENAME, "rb") as img_file:
+      import base64
+
+      encoded = base64.b64encode(img_file.read()).decode("utf-8")
+    logo_html = f'<img src="data:image/png;base64,{encoded}" style="height: 65px; width: auto; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">'
   else:
     logo_html = '<div style="font-size: 40px;">🏛️</div>'
 
@@ -328,8 +359,8 @@ def render_header() -> None:
           <div>{logo_html}</div>
           <div>
               <div class="hero-title">BANGSAMORO ECONOMIC ZONE AUTHORITY</div>
-              <div class="hero-subtitle">Office of the Building Official — One-Stop Shop E-Permitting Portal</div>
-              <div class="arta-badge">⚡ RA 11032 ARTA Compliant • Inter-Agency Coordination Gateway</div>
+              <div class="hero-subtitle">Office of the Building Official — One-Stop Shop Cloud Permitting Portal</div>
+              <div class="arta-badge">⚡ RA 11032 ARTA Compliant • Cloudflare R2 Cloud Storage Active</div>
           </div>
       </div>
       """,
@@ -337,22 +368,10 @@ def render_header() -> None:
   )
 
 
-def get_base64_image(image_path: str) -> str:
-  """Encodes local logo image to base64 for reliable inline HTML rendering."""
-  import base64
-
-  with open(image_path, "rb") as img_file:
-    return base64.b64encode(img_file.read()).decode("utf-8")
-
-
 render_header()
 
 
-# ==========================================
-# 6. SIDEBAR NAVIGATION & ONE-STOP TRACKER
-# ==========================================
 def render_sidebar() -> str:
-  """Renders the sidebar navigation, live tracking lookup, document center, and admin login."""
   with st.sidebar:
     if os.path.exists(LOGO_FILENAME):
       st.image(LOGO_FILENAME, width=120)
@@ -442,8 +461,8 @@ def render_sidebar() -> str:
 
     st.markdown("---")
     st.caption(
-        "BEZA One-Stop Shop Portal • Coordinating inter-agency routing with"
-        " MENRE, MOLE, & BFP."
+        "BEZA Cloud Portal • Powered by Cloudflare R2 & Streamlit enterprise"
+        " architecture."
     )
 
   return selected_form
@@ -453,12 +472,11 @@ selected_form = render_sidebar()
 
 
 # ==========================================
-# 7. PORTAL VIEW 2: ADMIN REVIEW & ROUTING DASHBOARD
+# 5. ADMIN REVIEW & ROUTING DASHBOARD
 # ==========================================
 def render_admin_dashboard() -> None:
-  """Renders the administrative dashboard for managing applications and inter-agency routing."""
   st.markdown(
-      '<div class="module-header">🛡️ BEZA One-Stop Shop Inter-Agency Review'
+      '<div class="module-header">🛡️ BEZA One-Stop Shop Cloud Review'
       " Dashboard</div>",
       unsafe_allow_html=True,
   )
@@ -475,7 +493,7 @@ def render_admin_dashboard() -> None:
         f"""
         <div class="metric-card">
             <div class="metric-val">{len(df_submissions)}</div>
-            <div class="metric-lbl">Total Submissions</div>
+            <div class="metric-lbl">Total Cloud Submissions</div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -520,7 +538,7 @@ def render_admin_dashboard() -> None:
   st.dataframe(df_submissions, use_container_width=True)
 
   st.markdown("---")
-  st.markdown("### 🔀 Inter-Agency Routing & Document Location Inspector")
+  st.markdown("### 🔀 Inter-Agency Routing & Cloud Storage Inspector")
 
   row_indices = list(range(len(df_submissions)))
   selected_idx = st.selectbox(
@@ -585,37 +603,35 @@ def render_admin_dashboard() -> None:
   st.markdown("<br>", unsafe_allow_html=True)
   col_f1, col_f2 = st.columns(2)
   with col_f1:
-    form_path = current_row.get("Form_Path", "")
-    if isinstance(form_path, str) and os.path.exists(form_path):
-      with open(form_path, "rb") as f:
-        st.download_button(
-            label="📥 Download Submitted Application Form",
-            data=f,
-            file_name=os.path.basename(form_path),
-            mime="application/pdf",
-            key=f"dl_form_{selected_idx}",
+    form_key = current_row.get("Form_Key", "")
+    if form_key:
+      form_url = get_r2_download_link(form_key)
+      if form_url:
+        st.markdown(
+            f'<a href="{form_url}" target="_blank"><button'
+            ' style="background:#006A35; color:white; border:none; padding:10px'
+            ' 20px; border-radius:6px; font-weight:600; cursor:pointer;">📥'
+            " Download Application Form from Cloud</button></a>",
+            unsafe_allow_html=True,
         )
     else:
-      st.info("Application form file not found on server storage.")
+      st.info("Form key missing in registry.")
 
   with col_f2:
-    plans_path = current_row.get("Plans_Path", "")
-    if isinstance(plans_path, str) and os.path.exists(plans_path):
-      file_ext = (
-          "application/octet-stream"
-          if plans_path.endswith(".dwg")
-          else "application/pdf"
-      )
-      with open(plans_path, "rb") as f:
-        st.download_button(
-            label="📥 Download Engineering Plans / CAD Package",
-            data=f,
-            file_name=os.path.basename(plans_path),
-            mime=file_ext,
-            key=f"dl_plans_{selected_idx}",
+    plans_key = current_row.get("Plans_Key", "")
+    if plans_key:
+      plans_url = get_r2_download_link(plans_key)
+      if plans_url:
+        st.markdown(
+            f'<a href="{plans_url}" target="_blank"><button'
+            ' style="background:#0A2540; color:white; border:none; padding:10px'
+            ' 20px; border-radius:6px; font-weight:600; cursor:pointer;">📥'
+            " Download Engineering Plans / CAD Package from"
+            " Cloud</button></a>",
+            unsafe_allow_html=True,
         )
     else:
-      st.info("Engineering plans/CAD file not found on server storage.")
+      st.info("Plans key missing in registry.")
 
   st.markdown("---")
   st.markdown("### ⚙️ Edit / Delete Entry")
@@ -651,10 +667,7 @@ def render_admin_dashboard() -> None:
         st.rerun()
 
   with col_del:
-    st.warning(
-        "⚠️ Deleting a record is permanent and removes it from the regulatory"
-        " audit log."
-    )
+    st.warning("⚠️ Deleting a record is permanent.")
     if st.button(
         "🗑️ Delete Record Permanently", type="primary", key="delete_btn"
     ):
@@ -674,10 +687,9 @@ def render_admin_dashboard() -> None:
 
 
 # ==========================================
-# 8. PORTAL VIEW 1: PUBLIC SUBMISSION FORM
+# 6. PUBLIC SUBMISSION FORM
 # ==========================================
 def render_public_submission_form(module_name: str) -> None:
-  """Renders the secure applicant submission form supporting PDF and DWG CAD packages."""
   st.markdown(
       f'<div class="module-header">Active Module: <b>{module_name}</b></div>',
       unsafe_allow_html=True,
@@ -686,10 +698,10 @@ def render_public_submission_form(module_name: str) -> None:
   st.markdown(
       """
       <div class="info-card">
-          <b>📌 One-Stop Shop Workflow Instructions:</b><br>
+          <b>📌 One-Stop Shop Cloud Workflow Instructions:</b><br>
           1. Download the official blank PDF template from the sidebar document center.<br>
           2. Complete the form and compile your required engineering plans and technical drawings (PDF or AutoCAD .dwg format).<br>
-          3. Transmit your complete digital package below. <b>BEZA OBO coordinates directly on your behalf</b> with inter-agency partners (MENRE, MOLE, and BFP).
+          3. Transmit your complete digital package below. Files are uploaded securely to <b>Cloudflare R2 cloud storage</b>. BEZA OBO coordinates directly with MENRE, MOLE, and BFP.
       </div>
       """,
       unsafe_allow_html=True,
@@ -781,7 +793,7 @@ def render_public_submission_form(module_name: str) -> None:
 
     st.markdown("<br>", unsafe_allow_html=True)
     submitted = st.form_submit_button(
-        "🔒 Securely Transmit Application Package to BEZA One-Stop Shop"
+        "🔒 Securely Transmit Application Package to BEZA Cloud Portal"
     )
 
   if submitted:
@@ -797,66 +809,70 @@ def render_public_submission_form(module_name: str) -> None:
     ):
       st.error(
           "⚠️ Incomplete Submission: Please fill out all required fields (*)"
-          " and attach required files (Form & Plans/DWG)."
+          " and attach required files."
       )
     else:
       active_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
       auto_ref_no = f"BEZA-{datetime.now().strftime('%Y%m%d%H%M%S')}"
 
+      # Upload files directly to Cloudflare R2 Cloud Object Storage
       safe_form_name = sanitize_filename(uploaded_application_form.name)
-      form_filename = f"{auto_ref_no}_form_{safe_form_name}"
-      form_path = os.path.join(UPLOAD_DIR, form_filename)
-      with open(form_path, "wb") as f:
-        f.write(uploaded_application_form.getbuffer())
+      form_key = f"uploads/{auto_ref_no}_form_{safe_form_name}"
+      form_uploaded = upload_file_to_r2(uploaded_application_form, form_key)
 
       safe_plans_name = sanitize_filename(uploaded_plans.name)
-      plans_filename = f"{auto_ref_no}_plans_{safe_plans_name}"
-      plans_path = os.path.join(UPLOAD_DIR, plans_filename)
-      with open(plans_path, "wb") as f:
-        f.write(uploaded_plans.getbuffer())
+      plans_key = f"uploads/{auto_ref_no}_plans_{safe_plans_name}"
+      plans_uploaded = upload_file_to_r2(uploaded_plans, plans_key)
 
-      sub_data = {
-          "Timestamp": [active_timestamp],
-          "Module": [module_name],
-          "App_Ref_No": [auto_ref_no],
-          "Category": [proj_category],
-          "Owner_Name": [owner_name],
-          "TIN": [tin],
-          "Enterprise": [enterprise_name],
-          "Contact_No": [contact_no],
-          "Floor_Area_Sqm": [floor_area],
-          "Estimated_Cost": [estimated_cost],
-          "Storeys": [storeys],
-          "Materials": [materials],
-          "Location": [location],
-          "Form_File": [uploaded_application_form.name],
-          "Form_Path": [form_path],
-          "Plans_File": [uploaded_plans.name],
-          "Plans_Path": [plans_path],
-          "Status": ["Under Evaluation"],
-          "Current_Agency_Stage": [AGENCY_STAGES[0]],
-      }
+      if form_uploaded and plans_uploaded:
+        sub_data = {
+            "Timestamp": [active_timestamp],
+            "Module": [module_name],
+            "App_Ref_No": [auto_ref_no],
+            "Category": [proj_category],
+            "Owner_Name": [owner_name],
+            "TIN": [tin],
+            "Enterprise": [enterprise_name],
+            "Contact_No": [contact_no],
+            "Floor_Area_Sqm": [floor_area],
+            "Estimated_Cost": [estimated_cost],
+            "Storeys": [storeys],
+            "Materials": [materials],
+            "Location": [location],
+            "Form_File": [uploaded_application_form.name],
+            "Form_Key": [form_key],
+            "Plans_File": [uploaded_plans.name],
+            "Plans_Key": [plans_key],
+            "Status": ["Under Evaluation"],
+            "Current_Agency_Stage": [AGENCY_STAGES[0]],
+        }
 
-      df_new = pd.DataFrame(sub_data)
-      df_existing = load_submissions(CSV_FILE)
-      df_combined = pd.concat([df_existing, df_new], ignore_index=True)
+        df_new = pd.DataFrame(sub_data)
+        df_existing = load_submissions(CSV_FILE)
+        df_combined = pd.concat([df_existing, df_new], ignore_index=True)
 
-      if save_submissions(df_combined, CSV_FILE):
-        st.success(
-            f"✅ **Transmission Successful!** Your application package has been"
-            f" received by BEZA One-Stop Shop.\n\n"
-            f"⏱️ **Active Submission Timestamp:** `{active_timestamp}`\n"
-            f"📌 **Tracking Reference No.:** `{auto_ref_no}`\n"
-            f"📍 **Current Document Location:** `{AGENCY_STAGES[0]}`\n\n"
-            f"🏗️ **Declared Area:** {floor_area:,.2f} sq. m. | 💰 **Estimated"
-            f" Cost:** ₱{estimated_cost:,.2f}\n\n"
-            "*(BEZA OBO will coordinate your documents with MENRE, MOLE, and BFP on your behalf.)*"
+        if save_submissions(df_combined, CSV_FILE):
+          st.success(
+              f"✅ **Cloud Transmission Successful!** Files securely uploaded to"
+              f" Cloudflare R2.\n\n"
+              f"⏱️ **Active Submission Timestamp:** `{active_timestamp}`\n"
+              f"📌 **Tracking Reference No.:** `{auto_ref_no}`\n"
+              f"📍 **Current Document Location:** `{AGENCY_STAGES[0]}`\n\n"
+              f"🏗️ **Declared Area:** {floor_area:,.2f} sq. m. | 💰 **Estimated"
+              f" Cost:** ₱{estimated_cost:,.2f}\n\n"
+              "*(BEZA OBO coordinates your application with MENRE, MOLE, and"
+              " BFP on your behalf.)*"
+          )
+          st.balloons()
+      else:
+        st.error(
+            "❌ Failed to upload files to Cloudflare R2 bucket. Please check"
+            " your credentials and bucket name."
         )
-        st.balloons()
 
 
 # ==========================================
-# 9. MAIN ROUTING CONTROLLER
+# 7. MAIN ROUTING CONTROLLER
 # ==========================================
 if st.session_state.admin_authenticated:
   render_admin_dashboard()
