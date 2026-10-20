@@ -9,6 +9,7 @@ import os
 import re
 from typing import Any, Dict, List, Optional, Tuple
 import boto3
+from botocore.client import Config
 from botocore.exceptions import ClientError
 import pandas as pd
 import requests
@@ -286,11 +287,16 @@ st.markdown(
 # 3. UTILITIES & HTTPSMS GATEWAY
 # ==========================================
 def get_r2_client():
+  """Constructs a boto3 S3 client configured specifically for Cloudflare R2 SigV4 authentication."""
   return boto3.client(
       "s3",
       endpoint_url=R2_ENDPOINT_URL,
       aws_access_key_id=R2_ACCESS_KEY_ID,
       aws_secret_access_key=R2_SECRET_ACCESS_KEY,
+      region_name="auto",  # Cloudflare R2 requires region_name='auto'
+      config=Config(
+          signature_version="s3v4"
+      ),  # Explicitly force SigV4 to prevent authorization errors
   )
 
 
