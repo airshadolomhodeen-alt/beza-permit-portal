@@ -113,24 +113,35 @@ st.set_page_config(
 )
 
 # ==========================================
-# 2. WRAPPIXEL EXECUTIVE HIGH-CONTRAST CSS
+# 2. ORBIT ADMIN DESIGN SYSTEM CSS
 # ==========================================
 st.markdown(
     """
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
-        /* Global Font & High Contrast */
-        html, body, [class*="css"] {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            color: #0F172A !important;
+        :root {
+            --blue: #3467eb;
+            --orange: #ff8a3d;
+            --ink: #17233c;
+            --muted: #7d889f;
+            --line: #e9edf5;
+            --page: #f5f7fc;
+            --green: #18a879;
+            --sidebar: #172746;
         }
 
-        /* Top Page Alignment & Chrome Clean-Up */
+        /* Global Font & Background */
+        html, body, [class*="css"] {
+            font-family: 'Inter', sans-serif;
+            color: var(--ink) !important;
+        }
+
         .main .block-container {
-            padding-top: 1rem !important;
+            background-color: var(--page);
+            padding-top: 1.5rem !important;
             padding-bottom: 3rem !important;
-            max-width: 1280px;
+            max-width: 1400px;
         }
         
         header[data-testid="stHeader"] {
@@ -140,144 +151,156 @@ st.markdown(
         footer {visibility: hidden;}
         div[data-testid="stDecoration"] {display: none;}
 
-        /* WrapPixel Executive Hero Banner */
+        /* Orbit Admin Hero Banner */
         .hero-banner {
-            background: linear-gradient(135deg, #0A2540 0%, #006A35 100%);
-            padding: 24px 32px;
-            border-radius: 12px;
-            box-shadow: 0 8px 24px -4px rgba(0, 106, 53, 0.25);
+            background: linear-gradient(135deg, var(--sidebar) 0%, #233a65 100%);
+            padding: 24px 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 18px rgba(35, 58, 101, 0.08);
             color: #FFFFFF !important;
             display: flex;
             align-items: center;
             gap: 20px;
             margin-bottom: 24px;
-            border-bottom: 4px solid #FFC72C;
+            border-bottom: 4px solid var(--orange);
         }
         .hero-title {
-            font-size: 24px;
+            font-size: 22px;
             font-weight: 800;
             letter-spacing: -0.5px;
             margin: 0;
             color: #FFFFFF !important;
         }
         .hero-subtitle {
-            font-size: 13px;
-            color: #E2E8F0 !important;
+            font-size: 12px;
+            color: #aab6ce !important;
             margin-top: 4px;
             font-weight: 500;
         }
         .arta-badge {
-            background: rgba(255, 255, 255, 0.18);
+            background: rgba(255, 255, 255, 0.12);
             padding: 4px 10px;
-            border-radius: 16px;
-            font-size: 11px;
+            border-radius: 20px;
+            font-size: 10px;
             font-weight: 700;
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             display: inline-block;
             margin-top: 8px;
-            color: #FFC72C !important;
+            color: #ff9b5e !important;
         }
 
         /* Module & Section Card Styling */
         .module-header {
-            background: #F8FAFC;
-            border-left: 6px solid #006A35;
-            border-top: 1px solid #E2E8F0;
-            border-right: 1px solid #E2E8F0;
-            border-bottom: 1px solid #E2E8F0;
-            padding: 14px 20px;
-            border-radius: 0 8px 8px 0;
-            font-size: 18px;
-            font-weight: 700;
-            color: #0F172A !important;
+            background: #FFFFFF;
+            border-left: 5px solid var(--blue);
+            border-top: 1px solid var(--line);
+            border-right: 1px solid var(--line);
+            border-bottom: 1px solid var(--line);
+            padding: 16px 20px;
+            border-radius: 0 12px 12px 0;
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--ink) !important;
             margin-bottom: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            box-shadow: 0 5px 18px rgba(35, 58, 101, 0.03);
         }
 
         .info-card {
-            background-color: #F0FDF4;
-            border: 1px solid #BBF7D0;
-            border-radius: 8px;
-            padding: 16px 20px;
-            color: #14532D !important;
-            font-size: 13px;
+            background-color: #FFFFFF;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 18px 22px;
+            color: #334155 !important;
+            font-size: 12px;
             line-height: 1.6;
             margin-bottom: 24px;
+            box-shadow: 0 5px 18px rgba(35, 58, 101, 0.03);
         }
 
         label, .stSelectbox label, .stTextInput label, .stNumberInput label, .stFileUploader label, p, span {
-            color: #0F172A !important;
+            color: var(--ink) !important;
             font-weight: 600 !important;
         }
 
         div[data-testid="stForm"] {
             background: #FFFFFF;
-            border: 1px solid #E2E8F0;
-            border-radius: 12px;
+            border: 1px solid var(--line);
+            border-radius: 15px;
             padding: 28px;
-            box-shadow: 0 4px 16px rgba(15, 23, 42, 0.03);
+            box-shadow: 0 5px 18px rgba(35, 58, 101, 0.05);
         }
 
         .section-header {
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 800;
-            color: #0A2540 !important;
+            color: var(--ink) !important;
             margin-top: 15px;
             margin-bottom: 18px;
             text-transform: uppercase;
             letter-spacing: 0.8px;
-            border-bottom: 2px solid #F1F5F9;
+            border-bottom: 2px solid var(--line);
             padding-bottom: 8px;
         }
 
+        /* Sidebar Styling */
         section[data-testid="stSidebar"] {
-            background-color: #F8FAFC;
-            border-right: 1px solid #E2E8F0;
+            background-color: var(--sidebar);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
         }
-        
+        section[data-testid="stSidebar"] * {
+            color: #b7c3db !important;
+        }
+        section[data-testid="stSidebar"] input, section[data-testid="stSidebar"] select {
+            background: rgba(255, 255, 255, 0.06) !important;
+            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+            color: #ffffff !important;
+        }
+
+        /* Buttons */
         div.stButton > button[kind="primary"], .stFormSubmitButton > button {
-            background: linear-gradient(135deg, #006A35 0%, #004D26 100%) !important;
+            background: linear-gradient(135deg, var(--blue) 0%, #4777f3) !important;
             color: white !important;
             font-weight: 700 !important;
-            border-radius: 8px !important;
+            border-radius: 10px !important;
             border: none !important;
             padding: 12px 24px !important;
-            box-shadow: 0 4px 12px rgba(0, 106, 53, 0.25) !important;
+            box-shadow: 0 6px 16px rgba(52, 103, 235, 0.25) !important;
             width: 100%;
         }
 
+        /* Metrics */
         .metric-card {
             background: #FFFFFF;
-            border: 1px solid #E2E8F0;
-            border-top: 4px solid #006A35;
+            border: 1px solid var(--line);
+            border-top: 4px solid var(--blue);
             padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+            border-radius: 15px;
+            box-shadow: 0 5px 18px rgba(35, 58, 101, 0.04);
             text-align: center;
         }
         .metric-val {
-            font-size: 28px;
+            font-size: 26px;
             font-weight: 800;
-            color: #0A2540 !important;
+            color: var(--ink) !important;
         }
         .metric-lbl {
-            font-size: 12px;
-            color: #64748B !important;
+            font-size: 11px;
+            color: var(--muted) !important;
             font-weight: 700;
             text-transform: uppercase;
             margin-top: 4px;
         }
 
         .badge {
-            padding: 5px 12px;
-            border-radius: 12px;
-            font-size: 11px;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 10px;
             font-weight: 700;
             display: inline-block;
         }
-        .badge-eval { background: #FEF3C7; color: #92400E !important; border: 1px solid #FCD34D; }
-        .badge-approved { background: #D1FAE5; color: #065F46 !important; border: 1px solid #6EE7B7; }
-        .badge-pending { background: #FEE2E2; color: #991B1B !important; border: 1px solid #FCA5A5; }
+        .badge-eval { background: #fff4e5; color: #c67a22 !important; border: 1px solid #ffe0b2; }
+        .badge-approved { background: #e8f8f1; color: #15966b !important; border: 1px solid #b2f2d7; }
+        .badge-pending { background: #fff0f1; color: #d45061 !important; border: 1px solid #ffc9cd; }
     </style>
 """,
     unsafe_allow_html=True,
@@ -407,9 +430,9 @@ def render_header() -> None:
       import base64
 
       encoded = base64.b64encode(img_file.read()).decode("utf-8")
-    logo_html = f'<img src="data:image/png;base64,{encoded}" style="height: 65px; width: auto; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">'
+    logo_html = f'<img src="data:image/png;base64,{encoded}" style="height: 55px; width: auto; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">'
   else:
-    logo_html = '<div style="font-size: 40px;">🏛️</div>'
+    logo_html = '<div style="font-size: 35px;">✦</div>'
 
   st.markdown(
       f"""
@@ -459,16 +482,16 @@ def render_sidebar() -> str:
 
           st.markdown(
               f"""
-              <div style="background:#FFFFFF; border:1px solid #E2E8F0; padding:14px; border-radius:8px; margin-top:8px; box-shadow:0 2px 6px rgba(0,0,0,0.02);">
-                  <div style="font-size:11px; color:#64748B; font-weight:700;">Submitted At:</div>
-                  <div style="font-size:12px; font-weight:700; color:#0F172A; margin-bottom:6px;">{timestamp_filled}</div>
-                  <div style="font-size:11px; color:#64748B; font-weight:700;">Overall Status:</div>
+              <div style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); padding:14px; border-radius:10px; margin-top:8px;">
+                  <div style="font-size:11px; color:#8292b2; font-weight:700;">Submitted At:</div>
+                  <div style="font-size:12px; font-weight:700; color:#ffffff; margin-bottom:6px;">{timestamp_filled}</div>
+                  <div style="font-size:11px; color:#8292b2; font-weight:700;">Overall Status:</div>
                   <div style="margin-top:2px; margin-bottom:6px;"><span class="badge {badge_class}">{status}</span></div>
-                  <div style="font-size:11px; color:#64748B; font-weight:700;">📍 Current Agency Location:</div>
-                  <div style="font-size:12px; font-weight:700; color:#0A2540; margin-top:2px;">{current_stage}</div>
-                  <hr style="margin:8px 0; border:none; border-top:1px solid #F1F5F9;">
-                  <div style="font-size:12px; color:#0F172A;"><b>Owner:</b> {row['Owner_Name']}</div>
-                  <div style="font-size:12px; color:#0F172A;"><b>Module:</b> {row['Module']}</div>
+                  <div style="font-size:11px; color:#8292b2; font-weight:700;">📍 Current Agency Location:</div>
+                  <div style="font-size:12px; font-weight:700; color:#ff9b5e; margin-top:2px;">{current_stage}</div>
+                  <hr style="margin:8px 0; border:none; border-top:1px solid rgba(255,255,255,0.1);">
+                  <div style="font-size:12px; color:#ffffff;"><b>Owner:</b> {row['Owner_Name']}</div>
+                  <div style="font-size:12px; color:#ffffff;"><b>Module:</b> {row['Module']}</div>
               </div>
               """,
               unsafe_allow_html=True,
@@ -572,7 +595,7 @@ def render_admin_dashboard() -> None:
     st.markdown(
         f"""
         <div class="metric-card">
-            <div class="metric-val" style="color: #D97706;">{pending_count}</div>
+            <div class="metric-val" style="color: #ff8a3d;">{pending_count}</div>
             <div class="metric-lbl">Active Processing Files</div>
         </div>
         """,
@@ -622,12 +645,12 @@ def render_admin_dashboard() -> None:
       with col_info1:
         st.markdown(
             f"""
-            <div style="background:#FFFFFF; border:1px solid #E2E8F0; padding:18px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.02);">
-                <div style="font-size:13px; color:#0F172A; margin-bottom:6px;"><b>Active Timestamp:</b> <code>{current_row['Timestamp']}</code></div>
-                <div style="font-size:13px; color:#0F172A; margin-bottom:6px;"><b>Applicant Name:</b> {current_row['Owner_Name']}</div>
-                <div style="font-size:13px; color:#0F172A; margin-bottom:6px;"><b>Tracking Ref:</b> <code>{current_row['App_Ref_No']}</code></div>
-                <div style="font-size:13px; color:#0F172A; margin-bottom:6px;"><b>Contact No:</b> {current_row['Contact_No']}</div>
-                <div style="font-size:13px; color:#0F172A;"><b>Module Category:</b> {current_row['Module']}</div>
+            <div style="background:#FFFFFF; border:1px solid #e9edf5; padding:18px; border-radius:12px; box-shadow:0 5px 18px rgba(35, 58, 101, 0.03);">
+                <div style="font-size:13px; color:#17233c; margin-bottom:6px;"><b>Active Timestamp:</b> <code>{current_row['Timestamp']}</code></div>
+                <div style="font-size:13px; color:#17233c; margin-bottom:6px;"><b>Applicant Name:</b> {current_row['Owner_Name']}</div>
+                <div style="font-size:13px; color:#17233c; margin-bottom:6px;"><b>Tracking Ref:</b> <code>{current_row['App_Ref_No']}</code></div>
+                <div style="font-size:13px; color:#17233c; margin-bottom:6px;"><b>Contact No:</b> {current_row['Contact_No']}</div>
+                <div style="font-size:13px; color:#17233c;"><b>Module Category:</b> {current_row['Module']}</div>
             </div>
             """,
             unsafe_allow_html=True,
@@ -703,7 +726,7 @@ def render_admin_dashboard() -> None:
         if pd.notna(form_key) and form_key:
           form_url = get_r2_download_link(str(form_key))
           if form_url:
-            btn_html = f'<a href="{form_url}" target="_blank"><button style="background:#006A35; color:white; border:none; padding:12px 10px; border-radius:8px; font-weight:700; cursor:pointer; width:100%; font-size:12px;">Download Application Form</button></a>'
+            btn_html = f'<a href="{form_url}" target="_blank"><button style="background:#3467eb; color:white; border:none; padding:12px 10px; border-radius:8px; font-weight:700; cursor:pointer; width:100%; font-size:12px;">Download Application Form</button></a>'
             st.markdown(btn_html, unsafe_allow_html=True)
         else:
           st.info("No Form attached")
@@ -713,7 +736,7 @@ def render_admin_dashboard() -> None:
         if pd.notna(plans_key) and plans_key:
           plans_url = get_r2_download_link(str(plans_key))
           if plans_url:
-            btn_html = f'<a href="{plans_url}" target="_blank"><button style="background:#0A2540; color:white; border:none; padding:12px 10px; border-radius:8px; font-weight:700; cursor:pointer; width:100%; font-size:12px;">Download Engineering Plans</button></a>'
+            btn_html = f'<a href="{plans_url}" target="_blank"><button style="background:#172746; color:white; border:none; padding:12px 10px; border-radius:8px; font-weight:700; cursor:pointer; width:100%; font-size:12px;">Download Engineering Plans</button></a>'
             st.markdown(btn_html, unsafe_allow_html=True)
         else:
           st.info("No Plans attached")
@@ -723,7 +746,7 @@ def render_admin_dashboard() -> None:
         if pd.notna(comp_key) and str(comp_key).strip():
           comp_url = get_r2_download_link(str(comp_key))
           if comp_url:
-            btn_html = f'<a href="{comp_url}" target="_blank"><button style="background:#D97706; color:white; border:none; padding:12px 10px; border-radius:8px; font-weight:700; cursor:pointer; width:100%; font-size:12px;">Download Computations</button></a>'
+            btn_html = f'<a href="{comp_url}" target="_blank"><button style="background:#ff8a3d; color:white; border:none; padding:12px 10px; border-radius:8px; font-weight:700; cursor:pointer; width:100%; font-size:12px;">Download Computations</button></a>'
             st.markdown(btn_html, unsafe_allow_html=True)
         else:
           st.info("No Computations")
@@ -733,7 +756,7 @@ def render_admin_dashboard() -> None:
         if pd.notna(clear_key) and str(clear_key).strip():
           clear_url = get_r2_download_link(str(clear_key))
           if clear_url:
-            btn_html = f'<a href="{clear_url}" target="_blank"><button style="background:#4F46E5; color:white; border:none; padding:12px 10px; border-radius:8px; font-weight:700; cursor:pointer; width:100%; font-size:12px;">Download Clearances / ZIP</button></a>'
+            btn_html = f'<a href="{clear_url}" target="_blank"><button style="background:#8d72ec; color:white; border:none; padding:12px 10px; border-radius:8px; font-weight:700; cursor:pointer; width:100%; font-size:12px;">Download Clearances / ZIP</button></a>'
             st.markdown(btn_html, unsafe_allow_html=True)
         else:
           st.info("No Clearances")
@@ -747,11 +770,11 @@ def render_admin_dashboard() -> None:
       <html>
       <head>
       <style>
-          @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+          @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
           body {{
-              font-family: 'Plus Jakarta Sans', sans-serif;
+              font-family: 'Inter', sans-serif;
               background-color: #ffffff;
-              color: #0F172A;
+              color: #17233c;
               margin: 0;
               padding: 15px;
               display: flex;
@@ -760,25 +783,25 @@ def render_admin_dashboard() -> None:
           }}
           .printable-slip-card {{
               background: #FFFFFF;
-              border: 2px dashed #006A35;
+              border: 2px dashed #3467eb;
               padding: 24px;
-              border-radius: 10px;
+              border-radius: 12px;
               width: 100%;
               max-width: 580px;
-              box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+              box-shadow: 0 5px 18px rgba(35, 58, 101, 0.05);
               box-sizing: border-box;
           }}
           .print-btn {{
               margin-top: 20px;
-              background: linear-gradient(135deg, #006A35 0%, #004D26 100%);
+              background: linear-gradient(135deg, #3467eb 0%, #4777f3 100%);
               color: white;
               font-weight: 700;
-              border-radius: 8px;
+              border-radius: 10px;
               border: none;
               padding: 12px 24px;
               cursor: pointer;
-              box-shadow: 0 4px 12px rgba(0, 106, 53, 0.25);
-              font-family: 'Plus Jakarta Sans', sans-serif;
+              box-shadow: 0 6px 16px rgba(52, 103, 235, 0.25);
+              font-family: 'Inter', sans-serif;
               font-size: 14px;
               width: 100%;
               max-width: 580px;
@@ -795,7 +818,7 @@ def render_admin_dashboard() -> None:
                   display: none;
               }}
               .printable-slip-card {{
-                  border: 2px solid #006A35;
+                  border: 2px solid #3467eb;
                   box-shadow: none;
                   margin: 0;
                   max-width: 100%;
@@ -806,45 +829,45 @@ def render_admin_dashboard() -> None:
       </head>
       <body>
       <div class="printable-slip-card">
-          <div style="text-align: center; font-weight: 800; font-size: 14px; letter-spacing: 0.5px; color: #0F172A;">BANGSAMORO ECONOMIC ZONE AUTHORITY</div>
-          <div style="text-align: center; font-size: 11px; font-weight: 700; color: #006A35; margin-bottom: 12px;">OFFICE OF THE BUILDING OFFICIAL — RECORDS & INTAKE SECTION</div>
-          <div style="text-align: center; font-weight: 700; font-size: 13px; text-decoration: underline; margin-bottom: 15px; color: #0F172A;">OFFICIAL APPLICATION RECEIVING & CLAIM SLIP</div>
+          <div style="text-align: center; font-weight: 800; font-size: 14px; letter-spacing: 0.5px; color: #17233c;">BANGSAMORO ECONOMIC ZONE AUTHORITY</div>
+          <div style="text-align: center; font-size: 11px; font-weight: 700; color: #3467eb; margin-bottom: 12px;">OFFICE OF THE BUILDING OFFICIAL — RECORDS & INTAKE SECTION</div>
+          <div style="text-align: center; font-weight: 700; font-size: 13px; text-decoration: underline; margin-bottom: 15px; color: #17233c;">OFFICIAL APPLICATION RECEIVING & CLAIM SLIP</div>
           
           <table style="width: 100%; font-size: 12px; margin-bottom: 15px; border-collapse: collapse;">
               <tr>
-                  <td style="padding: 4px 0; color: #64748B; width: 35%;"><b>Tracking No:</b></td>
-                  <td style="padding: 4px 0; font-weight: 700; color: #0A2540;">{current_row['App_Ref_No']}</td>
+                  <td style="padding: 4px 0; color: #7d889f; width: 35%;"><b>Tracking No:</b></td>
+                  <td style="padding: 4px 0; font-weight: 700; color: #17233c;">{current_row['App_Ref_No']}</td>
               </tr>
               <tr>
-                  <td style="padding: 4px 0; color: #64748B;"><b>Applicant / Owner:</b></td>
-                  <td style="padding: 4px 0; font-weight: 700; color: #0F172A;">{current_row['Owner_Name']}</td>
+                  <td style="padding: 4px 0; color: #7d889f;"><b>Applicant / Owner:</b></td>
+                  <td style="padding: 4px 0; font-weight: 700; color: #17233c;">{current_row['Owner_Name']}</td>
               </tr>
               <tr>
-                  <td style="padding: 4px 0; color: #64748B;"><b>Module / Permit:</b></td>
-                  <td style="padding: 4px 0; font-weight: 600; color: #0F172A;">{current_row['Module']}</td>
+                  <td style="padding: 4px 0; color: #7d889f;"><b>Module / Permit:</b></td>
+                  <td style="padding: 4px 0; font-weight: 600; color: #17233c;">{current_row['Module']}</td>
               </tr>
               <tr>
-                  <td style="padding: 4px 0; color: #64748B;"><b>Location:</b></td>
-                  <td style="padding: 4px 0; font-weight: 600; color: #0F172A;">{current_row['Location']}</td>
+                  <td style="padding: 4px 0; color: #7d889f;"><b>Location:</b></td>
+                  <td style="padding: 4px 0; font-weight: 600; color: #17233c;">{current_row['Location']}</td>
               </tr>
               <tr>
-                  <td style="padding: 4px 0; color: #64748B;"><b>Floor Area / Cost:</b></td>
-                  <td style="padding: 4px 0; font-weight: 600; color: #0F172A;">{current_row['Floor_Area_Sqm']} sq.m. | ₱{current_row['Estimated_Cost']:,.2f}</td>
+                  <td style="padding: 4px 0; color: #7d889f;"><b>Floor Area / Cost:</b></td>
+                  <td style="padding: 4px 0; font-weight: 600; color: #17233c;">{current_row['Floor_Area_Sqm']} sq.m. | ₱{current_row['Estimated_Cost']:,.2f}</td>
               </tr>
               <tr>
-                  <td style="padding: 4px 0; color: #64748B;"><b>Date Filed:</b></td>
-                  <td style="padding: 4px 0; font-weight: 600; color: #0F172A;">{current_row['Timestamp']}</td>
+                  <td style="padding: 4px 0; color: #7d889f;"><b>Date Filed:</b></td>
+                  <td style="padding: 4px 0; font-weight: 600; color: #17233c;">{current_row['Timestamp']}</td>
               </tr>
           </table>
           
-          <hr style="border: none; border-top: 1px dashed #CBD5E1; margin: 12px 0;">
+          <hr style="border: none; border-top: 1px dashed #e9edf5; margin: 12px 0;">
           
-          <div style="font-size: 11px; margin-bottom: 20px; color: #0F172A;">
+          <div style="font-size: 11px; margin-bottom: 20px; color: #17233c;">
               <b>Received By (Records Officer):</b><br>
-              <span style="font-size: 12px; font-weight: 700; color: #006A35;">BEZA OBO Records & Intake Desk</span>
+              <span style="font-size: 12px; font-weight: 700; color: #3467eb;">BEZA OBO Records & Intake Desk</span>
           </div>
           
-          <div style="font-size: 10px; color: #64748B; font-style: italic; line-height: 1.4;">
+          <div style="font-size: 10px; color: #7d889f; font-style: italic; line-height: 1.4;">
               <b>Note:</b> Please present this original claim slip to claim evaluation status updates, assessment findings, and approved permits. Xerox or digital snapshots are subject to verification.
           </div>
       </div>
@@ -854,7 +877,6 @@ def render_admin_dashboard() -> None:
       </html>
       """
       
-      # FIX: Rendered with integrated component-level print trigger to isolate print output to 1 page
       st.components.v1.html(slip_html, height=520, scrolling=False)
 
   st.markdown("---")
@@ -1102,7 +1124,7 @@ if not st.session_state.admin_authenticated and not st.session_state.accepted_gu
 
   st.markdown(
       """
-      <div class="info-card" style="background-color: #F8FAFC; border: 1px solid #CBD5E1; color: #0F172A !important;">
+      <div class="info-card">
           <b>⚠️ IMPORTANT NOTICE TO ALL APPLICANTS:</b><br>
           Before proceeding with your electronic submission under the National Building Code (NBC), please read and understand the official compliance guidelines below. Click <b>"Continue to Portal"</b> at the bottom to unlock the submission forms.
       </div>
