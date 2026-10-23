@@ -22,7 +22,7 @@ CSV_FILE: str = "submissions.csv"
 LOGO_FILENAME: str = "BEZA-LOGO-Copy-300x300.png"
 BUCKET_NAME: str = "beza-permits-bucket"
 
-# Cloudflare R2 S3-Compatible Credentials (safely loaded from Streamlit TOML secrets)
+# Cloudflare R2 Credentials
 R2_ENDPOINT_URL: str = st.secrets.get(
     "R2_ENDPOINT_URL",
     "https://2859e7a87dd0372ba85ff9d2df8e22c8.r2.cloudflarestorage.com",
@@ -113,7 +113,7 @@ st.set_page_config(
 )
 
 # ==========================================
-# 2. ORBIT ADMIN DESIGN SYSTEM CSS
+# 2. DESIGN SYSTEM CSS
 # ==========================================
 st.markdown(
     """
@@ -139,17 +139,40 @@ st.markdown(
 
         .main .block-container {
             background-color: var(--page);
-            padding-top: 1.5rem !important;
+            padding-top: 1rem !important;
             padding-bottom: 3rem !important;
             max-width: 1400px;
         }
         
-        header[data-testid="stHeader"] {
-            display: none !important;
-        }
         #MainMenu {visibility: hidden;}
         footer {visibility: hidden;}
         div[data-testid="stDecoration"] {display: none;}
+
+        /* Navigation Tab Styling */
+        .stTabs [data-baseweb="tab-list"] {
+            gap: 12px;
+            background-color: #FFFFFF;
+            padding: 8px;
+            border-radius: 12px;
+            border: 1px solid var(--line);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            margin-bottom: 20px;
+        }
+
+        .stTabs [data-baseweb="tab"] {
+            height: 48px;
+            white-space: pre-wrap;
+            border-radius: 8px;
+            font-weight: 700 !important;
+            font-size: 14px !important;
+            color: var(--muted) !important;
+            padding: 0px 24px;
+        }
+
+        .stTabs [aria-selected="true"] {
+            background-color: var(--blue) !important;
+            color: #FFFFFF !important;
+        }
 
         /* Orbit Admin Hero Banner */
         .hero-banner {
@@ -161,7 +184,7 @@ st.markdown(
             display: flex;
             align-items: center;
             gap: 20px;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
             border-bottom: 4px solid var(--orange);
         }
         .hero-title {
@@ -250,11 +273,6 @@ st.markdown(
         section[data-testid="stSidebar"] * {
             color: #b7c3db !important;
         }
-        section[data-testid="stSidebar"] input, section[data-testid="stSidebar"] select {
-            background: rgba(255, 255, 255, 0.06) !important;
-            border: 1px solid rgba(255, 255, 255, 0.15) !important;
-            color: #ffffff !important;
-        }
 
         /* Buttons */
         div.stButton > button[kind="primary"], .stFormSubmitButton > button {
@@ -308,7 +326,7 @@ st.markdown(
 
 
 # ==========================================
-# 3. UTILITIES & HTTPSMS GATEWAY
+# 3. UTILITIES
 # ==========================================
 def get_r2_client():
   return boto3.client(
@@ -341,7 +359,7 @@ def get_r2_download_link(object_key: str, expiration: int = 3600) -> Optional[st
     )
     return url
   except ClientError as e:
-    st.error(f"❌ Failed to generate secure download link: {e}")
+    st.error(f"❌ Failed to generate download link: {e}")
     return None
 
 
@@ -421,7 +439,7 @@ if "accepted_guidelines" not in st.session_state:
 
 
 # ==========================================
-# 4. UI COMPONENTS & RENDER FUNCTIONS
+# 4. UI COMPONENTS
 # ==========================================
 def render_header() -> None:
   logo_html = ""
@@ -454,26 +472,6 @@ def render_sidebar() -> str:
     if os.path.exists(LOGO_FILENAME):
       st.image(LOGO_FILENAME, width=120)
 
-    # --- ADMIN ACCESS SECTION (PLACED AT TOP FOR EASY MOBILE & DESKTOP VISIBILITY) ---
-    st.markdown("### 🔒 BEZA Admin Portal")
-    if st.session_state.admin_authenticated:
-      st.success("✅ Admin Session Active")
-      if st.button("🔒 Logout from Admin", key="admin_logout_btn"):
-        st.session_state.admin_authenticated = False
-        st.rerun()
-    else:
-      admin_toggle = st.checkbox("🔑 Open Admin Review Panel", key="admin_toggle_checkbox")
-      if admin_toggle:
-        admin_pin = st.text_input("Enter Access PIN", type="password", key="admin_pin_input")
-        if admin_pin:
-          if verify_admin_pin(admin_pin):
-            st.session_state.admin_authenticated = True
-            st.success("Access Granted.")
-            st.rerun()
-          else:
-            st.error("Invalid security PIN.")
-
-    st.markdown("---")
     st.markdown("### 📋 Regulatory Modules")
     selected_form = st.selectbox(
         "Select Application / Permit Form", list(FILENAME_MAP.keys())
@@ -544,11 +542,31 @@ def render_sidebar() -> str:
 
 
 def render_admin_dashboard() -> None:
+  if not st.session_state.admin_authenticated:
+    st.markdown(
+        '<div class="module-header">🔒 Admin Login Required</div>',
+        unsafe_allow_html=True,
+    )
+    st.info("Please enter your security PIN to open the review panel.")
+    pin_input = st.text_input("Enter Admin Access PIN", type="password", key="main_admin_pin")
+    if st.button("Unlock Admin Panel", key="unlock_btn"):
+      if verify_admin_pin(pin_input):
+        st.session_state.admin_authenticated = True
+        st.success("Access Granted.")
+        st.rerun()
+      else:
+        st.error("❌ Invalid Security PIN.")
+    return
+
+  # If authenticated:
   st.markdown(
-      '<div class="module-header">🛡️ BEZA One-Stop Shop Cloud Review'
-      " Dashboard</div>",
+      '<div class="module-header">🛡️ BEZA One-Stop Shop Cloud Review Dashboard</div>',
       unsafe_allow_html=True,
   )
+  
+  if st.button("🔒 Logout Admin Session"):
+    st.session_state.admin_authenticated = False
+    st.rerun()
 
   df_submissions = load_submissions(CSV_FILE)
 
@@ -584,11 +602,7 @@ def render_admin_dashboard() -> None:
     )
   with col_m3:
     pending_count = (
-        len(
-            df_submissions[
-                df_submissions["Status"] == "Under Evaluation"
-            ]
-        )
+        len(df_submissions[df_submissions["Status"] == "Under Evaluation"])
         if "Status" in df_submissions
         else 0
     )
@@ -605,9 +619,7 @@ def render_admin_dashboard() -> None:
   st.markdown("<br>", unsafe_allow_html=True)
   st.markdown("### 📊 Submissions Master Registry (Interactive)")
   st.caption(
-      "💡 **Direct Editing & Row Deletion Enabled:** Click cell values to edit"
-      " directly, or select row checkboxes and press **Delete** on your"
-      " keyboard to remove records."
+      "💡 **Direct Editing & Row Deletion Enabled:** Click cell values to edit directly, or select row checkboxes and press **Delete** on your keyboard to remove records."
   )
 
   edited_df = st.data_editor(
@@ -635,7 +647,6 @@ def render_admin_dashboard() -> None:
 
     current_row = edited_df.loc[selected_idx]
 
-    # --- Sub-navigation / Action Tabs ---
     tab_inspect, tab_print = st.tabs(
         ["📝 Routing & Attachments", "🖨️ Printable Receiving Slip"]
     )
@@ -706,19 +717,13 @@ def render_admin_dashboard() -> None:
                   f" {current_row['Contact_No']}!"
               )
             else:
-              st.warning(
-                  "⚠️ Database updated, but httpSMS gateway failed to dispatch"
-                  " SMS (check API key & gateway phone balance/load)."
-              )
+              st.warning("⚠️ Database updated, but httpSMS failed to dispatch.")
           else:
-            st.success(
-                f"✅ Updated agency route to **{new_stage}** successfully!"
-            )
+            st.success(f"✅ Updated agency route to **{new_stage}**!")
           st.rerun()
 
       st.markdown("<br>", unsafe_allow_html=True)
-      
-      # --- Full 4-Column Admin Download Suite ---
+
       col_f1, col_f2, col_f3, col_f4 = st.columns(4)
 
       with col_f1:
@@ -726,8 +731,7 @@ def render_admin_dashboard() -> None:
         if pd.notna(form_key) and form_key:
           form_url = get_r2_download_link(str(form_key))
           if form_url:
-            btn_html = f'<a href="{form_url}" target="_blank"><button style="background:#3467eb; color:white; border:none; padding:12px 10px; border-radius:8px; font-weight:700; cursor:pointer; width:100%; font-size:12px;">Download Application Form</button></a>'
-            st.markdown(btn_html, unsafe_allow_html=True)
+            st.markdown(f'<a href="{form_url}" target="_blank"><button style="background:#3467eb; color:white; border:none; padding:12px 10px; border-radius:8px; font-weight:700; cursor:pointer; width:100%; font-size:12px;">Download Form</button></a>', unsafe_allow_html=True)
         else:
           st.info("No Form attached")
 
@@ -736,8 +740,7 @@ def render_admin_dashboard() -> None:
         if pd.notna(plans_key) and plans_key:
           plans_url = get_r2_download_link(str(plans_key))
           if plans_url:
-            btn_html = f'<a href="{plans_url}" target="_blank"><button style="background:#172746; color:white; border:none; padding:12px 10px; border-radius:8px; font-weight:700; cursor:pointer; width:100%; font-size:12px;">Download Engineering Plans</button></a>'
-            st.markdown(btn_html, unsafe_allow_html=True)
+            st.markdown(f'<a href="{plans_url}" target="_blank"><button style="background:#172746; color:white; border:none; padding:12px 10px; border-radius:8px; font-weight:700; cursor:pointer; width:100%; font-size:12px;">Download Plans</button></a>', unsafe_allow_html=True)
         else:
           st.info("No Plans attached")
 
@@ -746,8 +749,7 @@ def render_admin_dashboard() -> None:
         if pd.notna(comp_key) and str(comp_key).strip():
           comp_url = get_r2_download_link(str(comp_key))
           if comp_url:
-            btn_html = f'<a href="{comp_url}" target="_blank"><button style="background:#ff8a3d; color:white; border:none; padding:12px 10px; border-radius:8px; font-weight:700; cursor:pointer; width:100%; font-size:12px;">Download Computations</button></a>'
-            st.markdown(btn_html, unsafe_allow_html=True)
+            st.markdown(f'<a href="{comp_url}" target="_blank"><button style="background:#ff8a3d; color:white; border:none; padding:12px 10px; border-radius:8px; font-weight:700; cursor:pointer; width:100%; font-size:12px;">Download Computations</button></a>', unsafe_allow_html=True)
         else:
           st.info("No Computations")
 
@@ -756,127 +758,40 @@ def render_admin_dashboard() -> None:
         if pd.notna(clear_key) and str(clear_key).strip():
           clear_url = get_r2_download_link(str(clear_key))
           if clear_url:
-            btn_html = f'<a href="{clear_url}" target="_blank"><button style="background:#8d72ec; color:white; border:none; padding:12px 10px; border-radius:8px; font-weight:700; cursor:pointer; width:100%; font-size:12px;">Download Clearances / ZIP</button></a>'
-            st.markdown(btn_html, unsafe_allow_html=True)
+            st.markdown(f'<a href="{clear_url}" target="_blank"><button style="background:#8d72ec; color:white; border:none; padding:12px 10px; border-radius:8px; font-weight:700; cursor:pointer; width:100%; font-size:12px;">Download Clearances</button></a>', unsafe_allow_html=True)
         else:
           st.info("No Clearances")
 
     with tab_print:
       st.markdown("### 🖨️ Official Receiving Record & Claim Slip Preview")
-      st.caption("This printable document represents the official file receipt by the BEZA Records Officer for the selected applicant.")
-
       slip_html = f"""
       <!DOCTYPE html>
       <html>
       <head>
       <style>
           @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-          body {{
-              font-family: 'Inter', sans-serif;
-              background-color: #ffffff;
-              color: #17233c;
-              margin: 0;
-              padding: 15px;
-              display: flex;
-              flex-direction: column;
-              align-items: center;
-          }}
-          .printable-slip-card {{
-              background: #FFFFFF;
-              border: 2px dashed #3467eb;
-              padding: 24px;
-              border-radius: 12px;
-              width: 100%;
-              max-width: 580px;
-              box-shadow: 0 5px 18px rgba(35, 58, 101, 0.05);
-              box-sizing: border-box;
-          }}
-          .print-btn {{
-              margin-top: 20px;
-              background: linear-gradient(135deg, #3467eb 0%, #4777f3 100%);
-              color: white;
-              font-weight: 700;
-              border-radius: 10px;
-              border: none;
-              padding: 12px 24px;
-              cursor: pointer;
-              box-shadow: 0 6px 16px rgba(52, 103, 235, 0.25);
-              font-family: 'Inter', sans-serif;
-              font-size: 14px;
-              width: 100%;
-              max-width: 580px;
-          }}
-          .print-btn:hover {{
-              opacity: 0.9;
-          }}
-          @media print {{
-              body {{
-                  padding: 0;
-                  background: white;
-              }}
-              .print-btn {{
-                  display: none;
-              }}
-              .printable-slip-card {{
-                  border: 2px solid #3467eb;
-                  box-shadow: none;
-                  margin: 0;
-                  max-width: 100%;
-                  width: 100%;
-              }}
-          }}
+          body {{ font-family: 'Inter', sans-serif; background: #fff; color: #17233c; padding: 15px; display: flex; flex-direction: column; align-items: center; }}
+          .printable-slip-card {{ background: #FFF; border: 2px dashed #3467eb; padding: 24px; border-radius: 12px; width: 100%; max-width: 580px; box-sizing: border-box; }}
+          .print-btn {{ margin-top: 20px; background: #3467eb; color: white; font-weight: 700; border-radius: 10px; border: none; padding: 12px 24px; cursor: pointer; font-size: 14px; width: 100%; max-width: 580px; }}
       </style>
       </head>
       <body>
       <div class="printable-slip-card">
-          <div style="text-align: center; font-weight: 800; font-size: 14px; letter-spacing: 0.5px; color: #17233c;">BANGSAMORO ECONOMIC ZONE AUTHORITY</div>
-          <div style="text-align: center; font-size: 11px; font-weight: 700; color: #3467eb; margin-bottom: 12px;">OFFICE OF THE BUILDING OFFICIAL — RECORDS & INTAKE SECTION</div>
-          <div style="text-align: center; font-weight: 700; font-size: 13px; text-decoration: underline; margin-bottom: 15px; color: #17233c;">OFFICIAL APPLICATION RECEIVING & CLAIM SLIP</div>
-          
-          <table style="width: 100%; font-size: 12px; margin-bottom: 15px; border-collapse: collapse;">
-              <tr>
-                  <td style="padding: 4px 0; color: #7d889f; width: 35%;"><b>Tracking No:</b></td>
-                  <td style="padding: 4px 0; font-weight: 700; color: #17233c;">{current_row['App_Ref_No']}</td>
-              </tr>
-              <tr>
-                  <td style="padding: 4px 0; color: #7d889f;"><b>Applicant / Owner:</b></td>
-                  <td style="padding: 4px 0; font-weight: 700; color: #17233c;">{current_row['Owner_Name']}</td>
-              </tr>
-              <tr>
-                  <td style="padding: 4px 0; color: #7d889f;"><b>Module / Permit:</b></td>
-                  <td style="padding: 4px 0; font-weight: 600; color: #17233c;">{current_row['Module']}</td>
-              </tr>
-              <tr>
-                  <td style="padding: 4px 0; color: #7d889f;"><b>Location:</b></td>
-                  <td style="padding: 4px 0; font-weight: 600; color: #17233c;">{current_row['Location']}</td>
-              </tr>
-              <tr>
-                  <td style="padding: 4px 0; color: #7d889f;"><b>Floor Area / Cost:</b></td>
-                  <td style="padding: 4px 0; font-weight: 600; color: #17233c;">{current_row['Floor_Area_Sqm']} sq.m. | ₱{current_row['Estimated_Cost']:,.2f}</td>
-              </tr>
-              <tr>
-                  <td style="padding: 4px 0; color: #7d889f;"><b>Date Filed:</b></td>
-                  <td style="padding: 4px 0; font-weight: 600; color: #17233c;">{current_row['Timestamp']}</td>
-              </tr>
+          <div style="text-align: center; font-weight: 800; font-size: 14px; color: #17233c;">BANGSAMORO ECONOMIC ZONE AUTHORITY</div>
+          <div style="text-align: center; font-size: 11px; font-weight: 700; color: #3467eb; margin-bottom: 12px;">OFFICE OF THE BUILDING OFFICIAL</div>
+          <div style="text-align: center; font-weight: 700; font-size: 13px; text-decoration: underline; margin-bottom: 15px;">OFFICIAL RECEIVING SLIP</div>
+          <table style="width: 100%; font-size: 12px; border-collapse: collapse;">
+              <tr><td style="padding:4px 0; color:#7d889f;"><b>Tracking No:</b></td><td><b>{current_row['App_Ref_No']}</b></td></tr>
+              <tr><td style="padding:4px 0; color:#7d889f;"><b>Applicant:</b></td><td><b>{current_row['Owner_Name']}</b></td></tr>
+              <tr><td style="padding:4px 0; color:#7d889f;"><b>Module:</b></td><td>{current_row['Module']}</td></tr>
+              <tr><td style="padding:4px 0; color:#7d889f;"><b>Location:</b></td><td>{current_row['Location']}</td></tr>
+              <tr><td style="padding:4px 0; color:#7d889f;"><b>Date Filed:</b></td><td>{current_row['Timestamp']}</td></tr>
           </table>
-          
-          <hr style="border: none; border-top: 1px dashed #e9edf5; margin: 12px 0;">
-          
-          <div style="font-size: 11px; margin-bottom: 20px; color: #17233c;">
-              <b>Received By (Records Officer):</b><br>
-              <span style="font-size: 12px; font-weight: 700; color: #3467eb;">BEZA OBO Records & Intake Desk</span>
-          </div>
-          
-          <div style="font-size: 10px; color: #7d889f; font-style: italic; line-height: 1.4;">
-              <b>Note:</b> Please present this original claim slip to claim evaluation status updates, assessment findings, and approved permits. Xerox or digital snapshots are subject to verification.
-          </div>
       </div>
-      
-      <button class="print-btn" onclick="window.print()">🖨️ Print Receiving Claim Slip</button>
+      <button class="print-btn" onclick="window.print()">🖨️ Print Claim Slip</button>
       </body>
       </html>
       """
-      
       st.components.v1.html(slip_html, height=520, scrolling=False)
 
   st.markdown("---")
@@ -898,10 +813,10 @@ def render_public_submission_form(module_name: str) -> None:
   st.markdown(
       """
       <div class="info-card">
-          <b>📌 One-Stop Shop Cloud Workflow Instructions:</b><br>
-          1. Download the official blank PDF template from the sidebar document center.<br>
-          2. Complete the form and compile your required engineering plans and technical drawings.<br>
-          3. Transmit your complete digital package below. Files are uploaded securely to <b>Cloudflare R2 cloud storage</b> and applicants receive automated <b>httpSMS notifications</b>.
+          <b>📌 Instructions:</b><br>
+          1. Download the official blank PDF template from the sidebar.<br>
+          2. Complete the form and compile your required engineering plans.<br>
+          3. Transmit your digital package below.
       </div>
       """,
       unsafe_allow_html=True,
@@ -909,21 +824,14 @@ def render_public_submission_form(module_name: str) -> None:
 
   with st.form("technical_submission_form"):
     st.markdown(
-        '<div class="section-header">📌 1. Project Identification & Applicant'
-        " Metadata</div>",
+        '<div class="section-header">📌 1. Project Identification</div>',
         unsafe_allow_html=True,
     )
 
     c1, c2, c3 = st.columns(3)
     proj_category = c1.selectbox(
         "Project Classification",
-        [
-            "Commercial",
-            "Industrial",
-            "Institutional",
-            "Residential",
-            "Infrastructure",
-        ],
+        ["Commercial", "Industrial", "Institutional", "Residential", "Infrastructure"],
     )
     submission_stage = c2.radio(
         "Submission Type", ["Original Filing", "Resubmission / Compliance"]
@@ -931,90 +839,59 @@ def render_public_submission_form(module_name: str) -> None:
     storeys = c3.number_input("Number of Storeys", min_value=1, step=1)
 
     col_a, col_b = st.columns([2, 1])
-    owner_name = col_a.text_input(
-        "Name of Owner / Applicant (Last Name, First Name, M.I.) *"
-    )
+    owner_name = col_a.text_input("Name of Owner / Applicant *")
     tin = col_b.text_input("Taxpayer Identification No. (TIN) *")
 
     col_c, col_d1, col_d2 = st.columns([2, 1, 2])
-    enterprise_name = col_c.text_input(
-        "Registered Enterprise Name (if applicable)"
-    )
-
+    enterprise_name = col_c.text_input("Registered Enterprise Name (if applicable)")
     country_code = col_d1.selectbox(
         "Country Code *",
-        [
-            "🇵🇭 Philippines (+63)",
-            "🇺🇸 USA / Canada (+1)",
-            "🇸🇬 Singapore (+65)",
-            "🇦🇪 UAE (+971)",
-            "🇸🇦 Saudi Arabia (+966)",
-            "🇯🇵 Japan (+81)",
-            "🇲🇾 Malaysia (+60)",
-        ],
+        ["🇵🇭 Philippines (+63)", "🇺🇸 USA (+1)", "🇸🇬 Singapore (+65)"],
         index=0,
     )
     prefix = country_code.split("(")[-1].replace(")", "").strip()
-
-    raw_mobile = col_d2.text_input(
-        "Mobile No. (e.g., 9171234567) *",
-        placeholder="9171234567",
-    )
+    raw_mobile = col_d2.text_input("Mobile No. *", placeholder="9171234567")
     clean_number = raw_mobile.lstrip("0").strip()
     contact_no = f"{prefix}{clean_number}" if clean_number else ""
 
-    location = st.text_input(
-        "Exact Location of Construction / Installation (Zone, Municipality) *"
-    )
+    location = st.text_input("Exact Location of Construction *")
 
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown(
-        '<div class="section-header">📐 2. Engineering Metrics & Cost Estimates'
-        " (Box 3A Data)</div>",
+        '<div class="section-header">📐 2. Engineering Metrics & Cost</div>',
         unsafe_allow_html=True,
     )
 
     m1, m2, m3 = st.columns(3)
-    floor_area = m1.number_input(
-        "Total Floor Area (sq. m.) *", min_value=0.0, step=1.0
-    )
-    estimated_cost = m2.number_input(
-        "Total Estimated Project Cost (PHP) *", min_value=0.0, step=1000.0
-    )
-    materials = m3.selectbox(
-        "Primary Structural Materials", ["Concrete", "Steel", "Wooden", "Mixed"]
-    )
+    floor_area = m1.number_input("Total Floor Area (sq. m.) *", min_value=0.0, step=1.0)
+    estimated_cost = m2.number_input("Total Estimated Cost (PHP) *", min_value=0.0, step=1000.0)
+    materials = m3.selectbox("Primary Materials", ["Concrete", "Steel", "Wooden", "Mixed"])
 
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown(
-        '<div class="section-header">📂 3. Technical Document Attachments (PDF /'
-        " CAD .dwg Packages / ZIP)</div>",
+        '<div class="section-header">📂 3. Document Attachments</div>',
         unsafe_allow_html=True,
     )
 
     up_col1, up_col2 = st.columns(2)
     with up_col1:
       uploaded_application_form = st.file_uploader(
-          "Upload Accomplished & Signed Official Form (PDF) *", type=["pdf"]
+          "Upload Official Form (PDF) *", type=["pdf"]
       )
       uploaded_plans = st.file_uploader(
-          "Upload Signed & Sealed Engineering Plans / CAD Drawings *",
-          type=["pdf", "dwg"],
+          "Upload Engineering Plans / CAD *", type=["pdf", "dwg"]
       )
 
     with up_col2:
       uploaded_computations = st.file_uploader(
-          "Upload Structural / Technical Computations (PDF)", type=["pdf"]
+          "Upload Technical Computations (PDF)", type=["pdf"]
       )
       uploaded_clearances = st.file_uploader(
-          "Upload Environmental / Zone Clearances (PDF/ZIP)",
-          type=["pdf", "zip"],
+          "Upload Clearances (PDF/ZIP)", type=["pdf", "zip"]
       )
 
     st.markdown("<br>", unsafe_allow_html=True)
-    submitted = st.form_submit_button(
-        "🔒 Securely Transmit Application Package & Dispatch SMS Notice"
-    )
+    submitted = st.form_submit_button("🔒 Transmit Application Package")
 
   if submitted:
     if (
@@ -1027,10 +904,7 @@ def render_public_submission_form(module_name: str) -> None:
         or not uploaded_application_form
         or not uploaded_plans
     ):
-      st.error(
-          "⚠️ Incomplete Submission: Please fill out all required fields (*)"
-          " and attach required files."
-      )
+      st.error("⚠️ Incomplete Submission: Please fill all required fields (*).")
     else:
       active_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
       auto_ref_no = f"BEZA-{datetime.now().strftime('%Y%m%d%H%M%S')}"
@@ -1091,111 +965,31 @@ def render_public_submission_form(module_name: str) -> None:
         df_combined = pd.concat([df_existing, df_new], ignore_index=True)
 
         if save_submissions(df_combined, CSV_FILE):
-          sms_welcome = (
-              f"BEZA OBO: Application received! Ref: {auto_ref_no}. "
-              f"Status: Under Evaluation. Track online via your ref number."
-          )
+          sms_welcome = f"BEZA OBO: Application received! Ref: {auto_ref_no}."
           sms_sent = send_sms_notification(contact_no, sms_welcome)
 
           st.success(
-              f"✅ **Cloud Transmission & SMS Notice Successful!**\n\n"
-              f"⏱️ **Timestamp:** `{active_timestamp}`\n"
+              f"✅ **Transmission Successful!**\n\n"
               f"📌 **Tracking Ref:** `{auto_ref_no}`\n"
-              f"📱 **httpSMS Notification:** "
-              f"{'Dispatched successfully to ' + contact_no if sms_sent else 'Gateway not configured or gateway phone lacks load.'}"
           )
           st.balloons()
       else:
-        st.error("❌ Failed to upload required files to Cloudflare R2 bucket.")
+        st.error("❌ Failed to upload required files to cloud storage.")
 
 
 # ==========================================
-# 5. EXECUTION & ROUTING CONTROLLER
+# 5. EXECUTION & TOP NAVIGATION CONTROLLER
 # ==========================================
 render_header()
 selected_form = render_sidebar()
 
-if not st.session_state.admin_authenticated and not st.session_state.accepted_guidelines:
-  st.markdown(
-      '<div class="module-header">🏛️ BEZA Electronic Permitting Portal — Terms &'
-      " Guidelines</div>",
-      unsafe_allow_html=True,
-  )
+# DIRECT TOP NAVIGATION TABS (Visible across desktop & mobile screens)
+top_tab_public, top_tab_admin = st.tabs(
+    ["📝 Public Application Portal", "🛡️ BEZA Admin Review Panel"]
+)
 
-  st.markdown(
-      """
-      <div class="info-card">
-          <b>⚠️ IMPORTANT NOTICE TO ALL APPLICANTS:</b><br>
-          Before proceeding with your electronic submission under the National Building Code (NBC), please read and understand the official compliance guidelines below. Click <b>"Continue to Portal"</b> at the bottom to unlock the submission forms.
-      </div>
-      """,
-      unsafe_allow_html=True,
-  )
-
-  st.markdown("### GUIDELINES IN THE SUBMISSION OF APPLICATIONS FOR PERMITS UNDER THE NATIONAL BUILDING CODE (NBC):")
-  
-  guidelines_content = """
-**A. PRE-CONSTRUCTION STAGE**
-* **Company Registration:** All applications for permits under the National Building Code (NBC) – building, sanitary/plumbing, fencing, electronics, electrical, and mechanical must be in the BEZA company's complete registered company name (as indicated in the BEZA Registration Certificate).
-* **Signatures & Authorization:** All applications must be signed by the company owner or authorized representative (in case of a representative, a secretary certificate or authorization letter from the owner is required). Printed name and position of signatory must be indicated in the plans.
-* **Professional Seals:** All applications must be signed and sealed by the required professional with valid PRC license and updated PTR. Clear copy of PRC and PTR must be submitted. Dry seal in all plans and documents must be clear and recognizable.
-* **Project Title Uniformity:** If the proposed project has several components - civil, sanitary/plumbing, fencing, electrical and mechanical, the same project title will be used in all the plans and documents to be submitted.
-* **Simultaneous Submissions:** All plans and documents of the project components must be submitted at the same time – partial submissions will not be accepted.
-* **Plan Dimensions:** Required plans are 2 standard size (20"x30") and 1 A3 size.
-* **Scaling Rules:** Plans must be drawn in scale as required under the NBC or the biggest possible scale in a 20x30 sheet. If fitting the entire layout in a 20x30 sheet will still result to a smaller scale - sectional details must be provided in scale 1:100. Scale used must be indicated.
-* **Gridlines:** All drawings must have gridlines and dimensions.
-* **Site Development:** Site development plans must be drawn in scale 1:100 or biggest possible scale in a 20x30 sheet.
-* **Project Location Plans:** Project location plans (in case of interior works and installation) must be the floor plan of the entire floor where the project will be implemented.
-* **Header Information:** As indicated in the checklist of requirements, all pages of the structural/electrical computation, detailed material and cost estimate, and technical specification must have the BEZA company's name, complete project title (as in the plans) and location.
-* **Technical Specifications:** Technical Specification must contain not only the list of materials to be used but must enumerate/state Codes/Publications/Standards to be used as reference in the project, method of execution, testing etc.
-* **Leased Facilities:** In case of company leasing from BEZA facilities – the location will be the lessor's bldg. and unit no. and BEZA zone or IT Site (e.g., Unit 1 ABCEDEF Building, Alphabet St. Laguna Technopark). For IT enterprises, e.g., Unit 2301 23rd floor XYZ Bldg. Makati, must be indicated in the plans and all documents.
-* **IT Enterprise Furniture Layout:** For IT Enterprises applying for building permit, floor plans with furniture layout must indicate width of aisles/walkways and distance back to back of chairs with notation that distances indicated in plans are when seats are occupied.
-* **Erasures & Corrections:** In case of erasures, notations, changes, or any paper pasted on the plans - all must be properly countersigned and noted by the signing professional of the page or sheet.
-* **Complete Packages:** Only complete and complying documents will be accepted. – No plan or document will be accepted for safekeeping.
-
----
-
-**B. POST-CONSTRUCTION STAGE**
-* **Permits to Operate:** After completion of work and prior to use/occupancy and operation, BEZA Registered Enterprise must secure Occupancy Permit and Electrical and Mechanical Permit to Operate. Must submit requirements as per checklist.
-* **As-Built Plans:** All plans must be labeled AS-BUILT as of date (month & year) and the Project Title must be the same as in the proposed plan (used in the pre-construction permit applications).
-* **Signatures:** The plans and Certificates of Completion must be signed and sealed by the same designer engineer who signed the application form and proposed plans.
-* **Dual Authorization:** The plans must be signed and sealed by both the Designer and Project-in-Charge.
-* **No Partial Submissions:** Only complete and complying documents will be accepted. – No partial submission will be allowed.
-
----
-
-**PROOF OF ACCEPTANCE OF APPLICATION IS A CLAIM SLIP** with application reference no. Only the original copy of the claim slip can be used to claim assessments, permits, and certificates. (Xerox and fax copies will not be honored)
-  """
-
-  with st.container(height=380):
-    st.markdown(guidelines_content)
-
-  st.markdown("<br>", unsafe_allow_html=True)
-
-  with st.form("guidelines_agreement_form"):
-    agreed = st.checkbox(
-        "I have read, understood, and agree to comply with all BEZA pre-construction"
-        " and post-construction guidelines stated above. *"
-    )
-    st.markdown("<br>", unsafe_allow_html=True)
-    proceed_btn = st.form_submit_button(
-        "🚀 I Have Read and Agree — Continue to Portal"
-    )
-
-  if proceed_btn:
-    if agreed:
-      st.session_state.accepted_guidelines = True
-      st.success("Guidelines accepted! Loading portal...")
-      st.rerun()
-    else:
-      st.error(
-          "⚠️ You must check the agreement box to confirm you have read the"
-          " guidelines before proceeding to the application portal."
-      )
-
-  st.stop()
-
-if st.session_state.admin_authenticated:
-  render_admin_dashboard()
-else:
+with top_tab_public:
   render_public_submission_form(selected_form)
+
+with top_tab_admin:
+  render_admin_dashboard()
