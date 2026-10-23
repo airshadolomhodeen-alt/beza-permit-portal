@@ -454,6 +454,26 @@ def render_sidebar() -> str:
     if os.path.exists(LOGO_FILENAME):
       st.image(LOGO_FILENAME, width=120)
 
+    # --- ADMIN ACCESS SECTION (PLACED AT TOP FOR EASY MOBILE & DESKTOP VISIBILITY) ---
+    st.markdown("### 🔒 BEZA Admin Portal")
+    if st.session_state.admin_authenticated:
+      st.success("✅ Admin Session Active")
+      if st.button("🔒 Logout from Admin", key="admin_logout_btn"):
+        st.session_state.admin_authenticated = False
+        st.rerun()
+    else:
+      admin_toggle = st.checkbox("🔑 Open Admin Review Panel", key="admin_toggle_checkbox")
+      if admin_toggle:
+        admin_pin = st.text_input("Enter Access PIN", type="password", key="admin_pin_input")
+        if admin_pin:
+          if verify_admin_pin(admin_pin):
+            st.session_state.admin_authenticated = True
+            st.success("Access Granted.")
+            st.rerun()
+          else:
+            st.error("Invalid security PIN.")
+
+    st.markdown("---")
     st.markdown("### 📋 Regulatory Modules")
     selected_form = st.selectbox(
         "Select Application / Permit Form", list(FILENAME_MAP.keys())
@@ -516,26 +536,6 @@ def render_sidebar() -> str:
         )
     else:
       st.warning("Template file not found in repository.")
-
-    st.markdown("---")
-    st.markdown("### 🔒 BEZA One-Stop Shop Admin")
-
-    if st.session_state.admin_authenticated:
-      st.success("Admin Session Active")
-      if st.button("🔒 Logout from Admin"):
-        st.session_state.admin_authenticated = False
-        st.rerun()
-    else:
-      admin_toggle = st.checkbox("Access Review Panel")
-      if admin_toggle:
-        admin_pin = st.text_input("Enter Access PIN", type="password")
-        if admin_pin:
-          if verify_admin_pin(admin_pin):
-            st.session_state.admin_authenticated = True
-            st.success("Access Granted.")
-            st.rerun()
-          else:
-            st.error("Invalid security PIN.")
 
     st.markdown("---")
     st.caption("BEZA Cloud Portal • Powered by Cloudflare R2 & httpSMS")
