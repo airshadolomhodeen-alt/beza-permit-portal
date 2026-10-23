@@ -131,7 +131,6 @@ st.markdown(
             --sidebar: #172746;
         }
 
-        /* Global Font & Background */
         html, body, [class*="css"] {
             font-family: 'Inter', sans-serif;
             color: var(--ink) !important;
@@ -148,7 +147,6 @@ st.markdown(
         footer {visibility: hidden;}
         div[data-testid="stDecoration"] {display: none;}
 
-        /* Navigation Tab Styling */
         .stTabs [data-baseweb="tab-list"] {
             gap: 12px;
             background-color: #FFFFFF;
@@ -174,7 +172,6 @@ st.markdown(
             color: #FFFFFF !important;
         }
 
-        /* Orbit Admin Hero Banner */
         .hero-banner {
             background: linear-gradient(135deg, var(--sidebar) 0%, #233a65 100%);
             padding: 24px 30px;
@@ -212,7 +209,6 @@ st.markdown(
             color: #ff9b5e !important;
         }
 
-        /* Module & Section Card Styling */
         .module-header {
             background: #FFFFFF;
             border-left: 5px solid var(--blue);
@@ -265,7 +261,6 @@ st.markdown(
             padding-bottom: 8px;
         }
 
-        /* Sidebar Styling */
         section[data-testid="stSidebar"] {
             background-color: var(--sidebar);
             border-right: 1px solid rgba(255, 255, 255, 0.1);
@@ -274,7 +269,6 @@ st.markdown(
             color: #b7c3db !important;
         }
 
-        /* Buttons */
         div.stButton > button[kind="primary"], .stFormSubmitButton > button {
             background: linear-gradient(135deg, var(--blue) 0%, #4777f3) !important;
             color: white !important;
@@ -286,7 +280,6 @@ st.markdown(
             width: 100%;
         }
 
-        /* Metrics */
         .metric-card {
             background: #FFFFFF;
             border: 1px solid var(--line);
@@ -365,6 +358,7 @@ def get_r2_download_link(object_key: str, expiration: int = 3600) -> Optional[st
 
 def send_sms_notification(to_phone: str, message: str) -> bool:
   if not HTTPSMS_API_KEY or not HTTPSMS_SENDER_PHONE:
+    st.warning("⚠️ httpSMS API Key or Sender Phone is not configured in secrets.")
     return False
 
   url = "https://api.httpsms.com/v1/messages/send"
@@ -377,9 +371,13 @@ def send_sms_notification(to_phone: str, message: str) -> bool:
 
   try:
     response = requests.post(url, json=payload, headers=headers, timeout=10)
-    return response.status_code in [200, 201]
+    if response.status_code in [200, 201]:
+      return True
+    else:
+      st.error(f"❌ httpSMS Error Code {response.status_code}: {response.text}")
+      return False
   except Exception as e:
-    st.warning(f"⚠️ SMS Gateway Warning: {e}")
+    st.warning(f"⚠️ SMS Gateway Connection Warning: {e}")
     return False
 
 
@@ -558,7 +556,6 @@ def render_admin_dashboard() -> None:
         st.error("❌ Invalid Security PIN.")
     return
 
-  # If authenticated:
   st.markdown(
       '<div class="module-header">🛡️ BEZA One-Stop Shop Cloud Review Dashboard</div>',
       unsafe_allow_html=True,
@@ -822,7 +819,7 @@ def render_public_submission_form(module_name: str) -> None:
       unsafe_allow_html=True,
   )
 
-  with st.form("technical_submission_form"):
+  with st.form("technical_submission_form", clear_on_submit=True):
     st.markdown(
         '<div class="section-header">📌 1. Project Identification</div>',
         unsafe_allow_html=True,
@@ -965,12 +962,18 @@ def render_public_submission_form(module_name: str) -> None:
         df_combined = pd.concat([df_existing, df_new], ignore_index=True)
 
         if save_submissions(df_combined, CSV_FILE):
-          sms_welcome = f"BEZA OBO: Application received! Ref: {auto_ref_no}."
+          sms_welcome = (
+              f"BEZA OBO: Application received! Ref: {auto_ref_no}. "
+              f"Status: Under Evaluation. Track online via your ref number."
+          )
           sms_sent = send_sms_notification(contact_no, sms_welcome)
 
           st.success(
-              f"✅ **Transmission Successful!**\n\n"
+              f"✅ **Transmission & Database Save Successful!**\n\n"
+              f"⏱️ **Timestamp:** `{active_timestamp}`\n"
               f"📌 **Tracking Ref:** `{auto_ref_no}`\n"
+              f"📱 **httpSMS Notification Status:** "
+              f"{'Successfully Dispatched to ' + contact_no if sms_sent else '⚠️ Gateway failed or gateway phone lacks load/internet connection.'}"
           )
           st.balloons()
       else:
@@ -983,7 +986,6 @@ def render_public_submission_form(module_name: str) -> None:
 render_header()
 selected_form = render_sidebar()
 
-# DIRECT TOP NAVIGATION TABS (Visible across desktop & mobile screens)
 top_tab_public, top_tab_admin = st.tabs(
     ["📝 Public Application Portal", "🛡️ BEZA Admin Review Panel"]
 )
